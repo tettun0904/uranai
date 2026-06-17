@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>統合鑑定ツール</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho+B1:wght@500;700&display=swap');
+  :root{--ink:#14110E;--ink2:#1C1813;--line:#3A3127;--washi:#ECE4D2;--washiSub:#C9BEA6;--text:#E8DFCC;--mute:#9C8F77;--shu:#C23B2B;--shuDim:#7E2A20;--ai:#7FA6D8;--gold:#C9A227;--mincho:'Shippori Mincho B1','Yu Mincho',serif;--sans:'Noto Sans JP','Yu Gothic',sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.8}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 64px}
+  header{position:sticky;top:0;background:var(--ink2);border-bottom:1px solid var(--line);z-index:5}
+  .hd{max-width:760px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:14px}
+  .seal{font-family:var(--mincho);color:#fff;background:var(--shu);width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
+  h1{font-family:var(--mincho);font-size:20px;color:var(--washi);margin:0;letter-spacing:1px}
+  .sub{font-size:11px;color:var(--mute)}
+  label.fl{font-size:12px;color:var(--washiSub);font-family:var(--mincho);display:block;margin:0 0 6px}
+  input[type=text]{width:100%;background:var(--ink2);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:10px 12px;font-size:14px;font-family:var(--sans);outline:none}
+  select{background:var(--ink2);border:1px solid var(--line);color:var(--text);border-radius:4px;padding:10px 8px;font-size:14px;font-family:var(--sans);outline:none}
+  input::placeholder{color:var(--mute)}
+  .sect{margin-top:22px}
+  .res{margin-top:8px;font-size:16px;font-weight:500;color:var(--washi)}
+  .steps{margin-top:4px;font-size:12px;color:var(--mute);line-height:1.6}
+  .dob{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .dob .u{font-size:12px;color:var(--mute);margin-left:-4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .panel{background:var(--ink2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-top:10px}
+  .si{width:46px;text-align:center;background:var(--ink2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px 0;font-size:13px}
+  .si.bad{border:1.5px solid var(--shu);color:var(--shu)}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+  .card{background:#211d16;border-radius:6px;padding:10px 4px;text-align:center}
+  .card .lb{font-size:11px;color:var(--mute);font-family:var(--mincho)}
+  .card .vl{font-size:22px;font-weight:700;color:var(--washi)}
+  .card .ku{font-size:12px}
+  .toggle{font-size:12px;font-family:var(--mincho);border:1px solid var(--line);color:var(--mute);background:transparent;border-radius:4px;padding:4px 10px;cursor:pointer}
+  .toggle.on{border-color:var(--gold);color:var(--gold);background:#231f15}
+  .photos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:8px}
+  @media(max-width:560px){.photos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .steph{font-family:var(--mincho);color:var(--gold);font-size:15px;letter-spacing:1px;margin:4px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .navbtns{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:22px}
+  .navbtns .act{flex:0 1 auto;min-width:150px}
+  .devsel{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  @media(max-width:560px){.devsel{grid-template-columns:1fr}}
+  .devbtn{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:26px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--washi);cursor:pointer;transition:border-color .15s,transform .05s;font-family:inherit}
+  .devbtn:hover{border-color:var(--gold)}
+  .devbtn:active{transform:translateY(1px)}
+  .devicon{font-size:42px;line-height:1}
+  .devname{font-family:var(--mincho);font-size:19px;color:var(--washi)}
+  .devdesc{font-size:12px;color:var(--mute);line-height:1.6}
+  .devbtn .rec{font-size:11px;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:1px 8px}
+  .slot{background:var(--ink2);border:1px solid var(--line);border-radius:6px;padding:10px;text-align:center}
+  .thumb{aspect-ratio:3/4;border:1px dashed var(--line);border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0f0d0a;color:var(--mute);font-size:12px}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .cap{font-family:var(--mincho);color:var(--washi);font-size:14px;margin:8px 0 6px}
+  .sb{display:flex;gap:6px;justify-content:center}
+  .sb button{font-size:12px;border:1px solid var(--line);background:transparent;color:var(--washiSub);border-radius:4px;padding:5px 8px;cursor:pointer}
+  .sb button.go{border-color:var(--shuDim);color:#E9B8AE}
+  .note{display:flex;gap:10px;align-items:flex-start;background:var(--ink2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-top:18px;font-size:13px;color:var(--washiSub)}
+  .btns{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+  button.act{flex:1;min-width:180px;border:none;border-radius:4px;padding:14px;font-size:15px;font-weight:700;font-family:var(--mincho);letter-spacing:2px;cursor:pointer}
+  .primary{background:var(--shu);color:#fff}
+  .gold{background:var(--gold);color:#241f12}
+  .ghost{background:transparent;color:var(--washiSub);border:1px solid var(--line)!important}
+  .copied{color:var(--gold);font-size:13px;margin-top:10px;min-height:18px}
+  textarea{width:100%;margin-top:12px;background:var(--ink2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:12px;font-size:12px;font-family:var(--sans);min-height:120px;display:none}
+  .foot{margin-top:24px;font-size:11px;color:var(--mute);line-height:1.7}
+  .cammodal{position:fixed;inset:0;background:#000;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+  .camstage{position:relative;width:100%;max-width:520px;aspect-ratio:3/4;background:#000;overflow:hidden;border-radius:8px}
+  .camstage video{width:100%;height:100%;object-fit:cover}
+  .guide{position:absolute;inset:0;pointer-events:none}
+  .guidelbl{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:var(--gold);font-size:13px;font-family:var(--mincho);text-shadow:0 1px 3px #000}
+  .camtitle{color:var(--washi);font-family:var(--mincho);font-size:16px;margin-bottom:12px}
+  .camver{color:#caa64a;font-size:12px;margin-bottom:10px;letter-spacing:1px;border:1px solid #6b5a22;border-radius:4px;padding:2px 8px}
+  .cambar{display:flex;gap:14px;margin-top:20px;align-items:center}
+  .shutter{width:68px;height:68px;border-radius:50%;background:#fff;border:4px solid var(--gold);cursor:pointer}
+  .camclose{background:transparent;border:1px solid #555;color:#ccc;border-radius:6px;padding:10px 16px;font-size:14px;cursor:pointer;font-family:var(--mincho)}
+  .camerr{color:#E9B8AE;font-size:13px;margin-top:10px;text-align:center;max-width:420px}
+  #resultView .h{font-family:var(--mincho);color:var(--washi);font-size:16px;font-weight:700;margin:14px 0 6px;border-left:3px solid var(--shu);padding-left:10px}
+  #resultView .p{margin:4px 0;font-size:14px}
+  #resultView .li{margin:2px 0 2px 6px;font-size:14px}
+  #resultView .brk{font-family:var(--mincho);color:var(--gold);font-weight:700}
+  #resultView strong{color:var(--washi)}
+  @media print{
+    body{background:#fff;color:#111}
+    header,.sect,.btns,.note,.foot,#cam,.copied,.panel,#kantei,#status,.step,.steph,.navbtns{display:none!important}
+    #resultSect{display:block!important;margin:0;padding:0}
+    #pdf{display:none!important}
+    #printHead{color:#111!important;border-bottom:2px solid #C23B2B;padding-bottom:8px;margin-bottom:14px;font-size:20px}
+    #resultView{color:#111}
+    #resultView .h{color:#111;border-color:#C23B2B}
+    #resultView .brk{color:#9a7d10}
+    #resultView strong{color:#000}
+    #resultView .p,#resultView .li{color:#111}
+  }
+</style>
+</head>
+<body>
+<header><div class="hd"><div class="seal">鑑</div><div><h1>統合鑑定ツール</h1><div class="sub">六星占術・姓名判断＝確定計算／手相・人相＝撮影してAI(Gemini)が分析</div></div></div></header>
+<div class="wrap">
+
+  <!-- STEP 0：機材選択 -->
+  <div class="step" id="step0">
+    <div class="steph">使う機材を選んでください</div>
+    <div style="color:var(--mute);font-size:13px;margin-bottom:6px">手相・顔の写真を撮る機材を選びます（あとから変更できます）。</div>
+    <div class="devsel">
+      <button class="devbtn" id="modePC">
+        <div class="devicon">💻</div>
+        <div class="devname">パソコン</div>
+        <div class="devdesc">内蔵カメラでその場で撮影<br>（手の枠ガイドが出ます）</div>
+      </button>
+      <button class="devbtn" id="modeSP">
+        <div class="devicon">📱</div>
+        <div class="devname">スマートフォン　<span class="rec">高画質・推奨</span></div>
+        <div class="devdesc">スマホのカメラ／写真から選ぶ<br>（手相の線まで鮮明に写ります）</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 1：入力 -->
+  <div class="step" id="step1" style="display:none">
+    <div class="steph">STEP 1 / 4　生年月日・お名前を入力</div>
+    <div class="sect">
+      <label class="fl">生年月日（六星占術）</label>
+      <div class="dob">
+        <select id="yy"></select><span class="u">年</span>
+        <select id="mm"></select><span class="u">月</span>
+        <select id="dd"></select><span class="u">日</span>
+      </div>
+      <div class="res" id="roku">—</div>
+      <div class="steps" id="rokuSteps"></div>
+    </div>
+    <div class="sect">
+      <div class="grid2">
+        <div><label class="fl" for="sei">姓（漢字）</label><input id="sei" type="text" placeholder="山田"></div>
+        <div><label class="fl" for="mei">名（漢字）</label><input id="mei" type="text" placeholder="太郎"></div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--mute)">画数（標準値を表示・<span style="color:var(--shu)">赤枠</span>は要入力。流派差は修正可）</span>
+          <button class="toggle" id="kyuji">旧字体（康熙）で数える：OFF</button>
+        </div>
+        <div id="editor" style="display:flex;gap:18px;flex-wrap:wrap"></div>
+        <div class="cards" id="gokaku"></div>
+        <div class="steps" id="seimeiSteps" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="navbtns"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="act ghost nav" id="toMode" style="min-width:auto;font-size:12px;padding:8px 12px">← 機材選択</button><button class="act ghost nav" id="clearPhotos" style="min-width:auto;font-size:12px;padding:8px 12px">保存写真を消去</button></div><button class="act primary nav" id="to2">写真撮影に進む →</button></div>
+  </div>
+
+  <!-- STEP 2：左手 -->
+  <div class="step" id="step2" style="display:none">
+    <div class="steph">STEP 2 / 4　左手の撮影（先天運）</div>
+    <label class="fl">左手を枠ガイドに合わせて撮影してください（4枚）</label>
+    <div class="photos">
+      <div class="slot"><div class="thumb" id="t-left">未撮影</div><div class="cap">①手全体</div><div class="sb"><button class="cam" data-id="left" data-kind="hand">撮影</button><button class="pick" data-id="left">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-palmL">未撮影</div><div class="cap">③手のひら</div><div class="sb"><button class="cam" data-id="palmL" data-kind="palm">撮影</button><button class="pick" data-id="palmL">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-venusL">未撮影</div><div class="cap">④金星丘</div><div class="sb"><button class="cam" data-id="venusL" data-kind="venus">撮影</button><button class="pick" data-id="venusL">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-moonL">未撮影</div><div class="cap">⑤月丘</div><div class="sb"><button class="cam" data-id="moonL" data-kind="moon">撮影</button><button class="pick" data-id="moonL">ファイル</button></div></div>
+    </div>
+    <div class="navbtns"><button class="act ghost nav" id="back1">← 戻る</button><button class="act primary nav" id="to3">右手へ進む →</button></div>
+  </div>
+
+  <!-- STEP 3：右手 -->
+  <div class="step" id="step3" style="display:none">
+    <div class="steph">STEP 3 / 4　右手の撮影（後天運）</div>
+    <label class="fl">右手を枠ガイドに合わせて撮影してください（4枚）</label>
+    <div class="photos">
+      <div class="slot"><div class="thumb" id="t-right">未撮影</div><div class="cap">②手全体</div><div class="sb"><button class="cam" data-id="right" data-kind="hand">撮影</button><button class="pick" data-id="right">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-palmR">未撮影</div><div class="cap">③手のひら</div><div class="sb"><button class="cam" data-id="palmR" data-kind="palm">撮影</button><button class="pick" data-id="palmR">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-venusR">未撮影</div><div class="cap">④金星丘</div><div class="sb"><button class="cam" data-id="venusR" data-kind="venus">撮影</button><button class="pick" data-id="venusR">ファイル</button></div></div>
+      <div class="slot"><div class="thumb" id="t-moonR">未撮影</div><div class="cap">⑤月丘</div><div class="sb"><button class="cam" data-id="moonR" data-kind="moon">撮影</button><button class="pick" data-id="moonR">ファイル</button></div></div>
+    </div>
+    <div class="navbtns"><button class="act ghost nav" id="back2">← 左手へ</button><button class="act primary nav" id="to4">顔へ進む →</button></div>
+  </div>
+
+  <!-- STEP 4：顔・鑑定 -->
+  <div class="step" id="step4" style="display:none">
+    <div class="steph">STEP 4 / 4　顔の撮影 → 鑑定</div>
+    <label class="fl">正面顔を撮影してください（人相・1枚）</label>
+    <div class="photos">
+      <div class="slot"><div class="thumb" id="t-face">未撮影</div><div class="cap">⑥正面顔</div><div class="sb"><button class="cam" data-id="face" data-kind="face">撮影</button><button class="pick" data-id="face">ファイル</button></div></div>
+    </div>
+    <div class="note">
+      <span style="color:var(--shu);font-size:18px;line-height:1">◆</span>
+      <div>「鑑定する」を押すと、入力内容と撮影した写真をAI（Gemini）に送り、結果をこの下に表示します（PDF保存も可）。写真が無い項目は「判定不能」になります。</div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <label class="fl" for="apikey">Gemini APIキー（初回だけ入力・このブラウザに保存されます）</label>
+      <input id="apikey" type="password" placeholder="AIza... で始まるキー" autocomplete="off">
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <span class="fl" style="margin:0">モデル</span>
+        <input id="model" type="text" value="gemini-2.5-flash" style="max-width:220px">
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="font-size:11px;color:var(--ai)">キーを取得</a>
+      </div>
+      <div style="font-size:11px;color:var(--mute);margin-top:10px">※キーはこのブラウザ内にのみ保存され、外部には送られません（鑑定リクエストはGoogleのGemini APIにのみ送信）。このファイルやキーを他人に渡さないでください。モデルは使えるものに変更可（例：gemini-2.0-flash / gemini-3.5-flash）。</div>
+    </div>
+    <button class="act primary" id="kantei" style="width:100%;margin-top:18px;font-size:17px;padding:16px;letter-spacing:6px">鑑 定 す る</button>
+    <div class="copied" id="status"></div>
+    <div class="navbtns" style="margin-top:14px"><button class="act ghost nav" id="back3">← 右手へ</button><span></span></div>
+  </div>
+
+  <input type="file" accept="image/*" id="fileInput" style="display:none">
+
+  <div class="sect" id="resultSect" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">
+      <div style="font-family:var(--mincho);font-size:18px;color:var(--washi)" id="printHead">鑑定結果</div>
+      <button class="act gold" id="pdf" style="flex:0 0 auto;min-width:auto;padding:10px 20px;letter-spacing:1px">印刷 / PDFで保存</button>
+    </div>
+    <div id="resultView"></div>
+  </div>
+
+  <div class="foot">
+    使い方：①生年月日（ドロップダウン）と姓名を入れる→②手・顔を撮影（枠に合わせる）→③Gemini APIキーを入力（初回のみ）→④「鑑定する」を押すだけ。結果がこの下に表示され、上の「印刷 / PDFで保存」でPDFにできます。<br>
+    ※六星占術・姓名判断はこのツールが確定計算します（運命数表1950-2030と一致を検証済み／対応1873〜2100年）。画数は流派差があるため編集可能です。<br>
+    ※カメラ許可は最初の1回だけ求められます（「サイトへのアクセス時は許可」を選ぶと次回以降も出にくくなります）。起動しない場合は「ファイル」ボタンから選べます。
+  </div>
+</div>
+
+<div class="cammodal" id="cam">
+  <div class="camtitle" id="camTitle">撮影</div>
+  <div class="camver" id="camver">ガイド版 G26（機材選択）</div>
+  <div class="camstage">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="guide" id="guide"></div>
+    <div class="guidelbl" id="guideLbl">枠に合わせてください</div>
+  </div>
+  <div class="cambar">
+    <button class="camclose" id="camclose">閉じる</button>
+    <button class="shutter" id="shutter" aria-label="撮影"></button>
+    <div style="width:64px"></div>
+  </div>
+  <div class="camerr" id="camerr"></div>
+  <canvas id="canvas" style="display:none"></canvas>
+</div>
+
+<script>
+(function(){
+  var ETO=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  var STARS=["","土星人","金星人","火星人","天王星人","木星人","水星人"];
+  var REIGOU={"土星人+":"戌","土星人−":"亥","金星人+":"申","金星人−":"酉","火星人+":"午","火星人−":"未","天王星人+":"辰","天王星人−":"巳","木星人+":"寅","木星人−":"卯","水星人+":"子","水星人−":"丑"};
+  function jdn(y,mo,d){var a=Math.floor((14-mo)/12);var yy=y+4800-a;var mm=mo+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+  function dayKanshi(y,mo,d){return ((jdn(y,mo,d)+49)%60)+1;}
+  function calcRokusei(y,mo,d){if(!y||!mo||!d)return{ok:false,reason:"生年月日を選択してください。"};if(y<1873||y>2100)return{ok:false,reason:"対応範囲(1873〜2100年)外です。"};var hoshi=dayKanshi(y,mo,d);var unmei=hoshi-d+1;while(unmei<1)unmei+=60;while(unmei>60)unmei-=60;var disp=unmei-1+d;var si=Math.ceil(hoshi/10);var star=STARS[si];var ei=(((y-4)%12)+12)%12;var eto=ETO[ei];var sign=ei%2===0?"+":"−";var rei=REIGOU[star+sign]===eto;var steps=["①運命数（"+y+"年×"+mo+"月）="+unmei,"②星数="+unmei+"−1+日"+d+"="+disp+(disp>60?" →60を引いて "+hoshi:"="+hoshi),"③星数"+hoshi+"（"+((si-1)*10+1)+"〜"+si*10+"帯）→ "+star,"④"+y+"年="+eto+"年 → "+(sign==="+"?"プラス":"マイナス"),"⑤霊合星人："+(rei?"該当":"非該当")];return{ok:true,label:star+sign+(rei?"（霊合星人）":""),steps:steps};}
+
+  var HIRA={"あ":3,"い":2,"う":2,"え":2,"お":3,"か":3,"き":4,"く":1,"け":3,"こ":2,"さ":3,"し":1,"す":2,"せ":3,"そ":2,"た":4,"ち":3,"つ":1,"て":1,"と":2,"な":5,"に":3,"ぬ":2,"ね":4,"の":1,"は":3,"ひ":2,"ふ":4,"へ":1,"ほ":4,"ま":4,"み":3,"む":3,"め":2,"も":3,"や":3,"ゆ":2,"よ":3,"ら":2,"り":2,"る":2,"れ":3,"ろ":2,"わ":3,"を":3,"ん":2,"ゃ":3,"ゅ":2,"ょ":3,"っ":1,"ー":1};
+  var KATA={"ア":2,"イ":2,"ウ":3,"エ":3,"オ":3,"カ":2,"キ":3,"ク":2,"ケ":3,"コ":2,"サ":3,"シ":3,"ス":2,"セ":2,"ソ":2,"タ":3,"チ":3,"ツ":3,"テ":3,"ト":2,"ナ":2,"ニ":2,"ヌ":2,"ネ":4,"ノ":1,"ハ":2,"ヒ":2,"フ":1,"ヘ":1,"ホ":4,"マ":2,"ミ":3,"ム":2,"メ":2,"モ":3,"ヤ":2,"ユ":2,"ヨ":3,"ラ":2,"リ":2,"ル":2,"レ":1,"ロ":3,"ワ":2,"ヲ":3,"ン":2,"ャ":2,"ュ":2,"ョ":3,"ッ":3,"ー":1};
+  var KANJI={"一":1,"二":2,"三":3,"四":5,"五":4,"六":4,"七":2,"八":2,"九":2,"十":2,"百":6,"千":3,"万":3,"億":15,"兆":6,"山":3,"川":3,"河":8,"海":9,"江":6,"沼":8,"池":6,"泉":9,"水":4,"氷":5,"谷":7,"峰":10,"峯":10,"岳":8,"岡":8,"丘":5,"野":11,"原":10,"平":5,"田":5,"畑":9,"町":7,"村":7,"里":7,"郷":11,"都":11,"京":8,"城":9,"林":8,"森":12,"木":4,"本":5,"末":5,"杉":7,"柏":9,"椿":13,"桐":10,"楓":13,"梅":10,"桜":10,"桃":10,"柳":9,"桑":10,"槙":14,"榊":14,"樫":16,"椎":12,"楠":13,"樹":16,"柊":9,"柚":9,"松":8,"竹":6,"土":3,"石":5,"岩":8,"砂":9,"磯":17,"崎":11,"島":10,"嶋":14,"浜":10,"渚":11,"洲":9,"灘":22,"沢":7,"瀬":19,"東":8,"西":6,"南":9,"北":5,"中":4,"央":5,"内":4,"外":5,"上":3,"下":3,"左":5,"右":5,"前":9,"後":9,"門":8,"関":14,"戸":4,"堀":11,"橋":16,"高":10,"長":8,"部":11,"庄":6,"宮":10,"寺":6,"堂":11,"井":4,"天":4,"空":8,"雲":12,"風":9,"雨":8,"雪":11,"霜":17,"露":21,"霧":19,"星":9,"月":4,"日":4,"時":10,"陽":12,"陰":11,"光":6,"影":15,"晴":12,"曇":16,"旭":6,"朝":12,"夕":3,"夜":8,"朔":10,"人":2,"仁":4,"信":9,"義":13,"礼":5,"智":12,"知":8,"忠":8,"孝":7,"悌":10,"徳":14,"仲":6,"伸":7,"偉":12,"健":11,"倫":10,"儀":15,"子":3,"女":3,"男":7,"父":4,"母":5,"兄":5,"弟":7,"姉":8,"妹":8,"祖":9,"孫":10,"夫":4,"妻":8,"心":4,"愛":13,"恵":10,"慈":13,"悠":11,"惇":11,"慎":13,"憲":16,"優":17,"和":8,"穏":16,"安":6,"康":11,"寧":14,"泰":10,"靖":13,"恒":9,"怜":8,"悦":10,"惟":11,"慶":15,"正":5,"直":8,"真":10,"純":10,"清":11,"澄":15,"潔":15,"端":14,"雅":13,"貞":9,"淑":11,"操":16,"明":8,"輝":15,"昭":9,"晃":10,"晶":12,"暁":12,"暢":14,"曜":18,"耀":20,"文":4,"武":8,"英":8,"賢":16,"哲":10,"聡":14,"才":3,"学":8,"識":19,"博":12,"弘":5,"浩":10,"洋":9,"宏":7,"広":5,"豊":13,"隆":11,"盛":11,"栄":9,"昌":8,"章":11,"書":10,"詩":13,"歌":14,"史":5,"記":10,"紀":9,"花":7,"華":10,"香":9,"菜":11,"芳":7,"苑":8,"茜":9,"莉":10,"薫":16,"葉":12,"緑":14,"翠":14,"碧":14,"藍":18,"萌":11,"葵":12,"蓮":13,"菊":11,"萩":12,"蘭":19,"桂":10,"藤":18,"茂":8,"若":8,"苗":8,"茉":8,"美":9,"麗":19,"綺":14,"彩":11,"絢":12,"綾":14,"紗":10,"織":18,"紘":10,"結":12,"縁":15,"絹":13,"緋":14,"龍":16,"竜":10,"鶴":21,"亀":11,"鳳":14,"凰":11,"鷹":24,"鳩":13,"燕":16,"虎":8,"獅":13,"馬":10,"駿":17,"騎":18,"鳥":11,"魚":11,"鯉":18,"鯛":19,"鮎":16,"王":4,"玉":5,"宝":8,"珠":10,"琴":12,"琳":12,"瑛":12,"瑞":13,"瑠":14,"璃":15,"環":17,"玲":9,"金":8,"銀":14,"銅":14,"鉄":13,"鋼":16,"鋭":15,"鈴":13,"錦":16,"口":3,"目":5,"手":4,"足":7,"耳":6,"身":7,"生":5,"命":8,"寿":7,"福":13,"禄":12,"喜":12,"嘉":14,"幸":8,"吉":6,"祥":10,"禎":13,"祐":9,"益":10,"富":12,"新":13,"古":5,"元":4,"始":8,"初":7,"創":12,"興":16,"白":5,"赤":7,"朱":6,"青":8,"蒼":13,"紺":11,"紅":9,"茶":9,"紫":12,"黄":11,"黒":11,"佐":7,"渡":12,"辺":5,"伊":6,"加":5,"斎":11,"齋":17,"渕":11,"淵":11,"邊":19,"邉":19,"菅":11,"秋":9,"春":9,"夏":10,"冬":5,"早":6,"之":3,"助":7,"介":4,"輔":14,"丞":6,"郎":9,"朗":10,"雄":12,"也":3,"哉":9,"弥":8,"彌":17,"太":4,"多":6,"大":3,"小":3,"翔":12,"湊":12,"咲":9,"凛":15,"杏":7,"颯":14,"馳":13,"翼":17,"羽":6,"律":9,"奏":9,"楽":13,"響":20,"涼":11,"椋":12,"凌":10,"諒":15,"隼":10,"拓":8,"陸":11,"暖":13,"維":14,"衣":6,"依":8,"居":8,"紬":11,"芽":8,"雫":11,"凪":6,"帆":6,"舟":6,"蛍":11,"亜":7,"亮":9,"国":8,"分":4,"公":4,"世":5,"主":5,"代":5,"以":5,"令":5,"典":8,"政":9,"治":8,"修":10,"業":13,"会":6,"合":6,"同":6,"園":13,"区":4,"市":5,"街":12,"道":12,"路":13,"線":15,"駅":14,"港":12,"場":12,"家":10,"屋":9,"店":8,"館":16,"社":7,"校":10,"院":10,"室":9,"字":6,"名":6,"姓":8,"氏":4,"民":5,"友":4,"力":2,"工":3,"久":3,"保":9,"今":4,"丸":3,"阿":8,"近":7,"坂":7,"遠":13,"浦":10,"柴":10,"酒":10,"横":15,"飯":12,"塚":12,"浅":9,"荒":9,"瀧":19,"滝":13};
+  var KYUUJI={"国":["國",11],"学":["學",16],"広":["廣",15],"徳":["德",15],"沢":["澤",16],"桜":["櫻",21],"鉄":["鐵",21],"栄":["榮",14],"寿":["壽",14],"円":["圓",13],"経":["經",13],"恵":["惠",12],"斎":["齋",17],"斉":["齊",14],"辺":["邊",19],"浜":["濱",18],"竜":["龍",16],"亀":["龜",16],"黒":["黑",12],"真":["眞",10],"礼":["禮",18],"県":["縣",16],"関":["關",19]};
+  var KYO={};[2,4,9,10,12,14,19,20,22,26,27,28,30,34,36,40,42,43,44,46,49,50,51,53,54,55,56,58,59,60,62,64,66,69,70,71,72,73,74,75,76,77,78,79,80].forEach(function(n){KYO[n]=1;});
+  var HAN={29:1,38:1};
+  function ku(n){var v=n;while(v>81)v-=81;if(v<1)v=1;return HAN[v]?"半吉":KYO[v]?"凶":"吉";}
+  function strokeBase(ch){if(KANJI[ch]!=null)return KANJI[ch];if(HIRA[ch]!=null)return HIRA[ch];if(KATA[ch]!=null)return KATA[ch];var d=ch.normalize("NFD");if(d.length>1){var b=HIRA[d[0]]!=null?HIRA[d[0]]:(KATA[d[0]]!=null?KATA[d[0]]:KANJI[d[0]]);if(b!=null){var add=0;for(var i=1;i<d.length;i++){if(d[i]==="\u3099")add+=2;else if(d[i]==="\u309A")add+=1;}return b+add;}}return null;}
+  var kyuji=false;
+  function autoStroke(ch){if(kyuji&&KYUUJI[ch])return KYUUJI[ch][1];return strokeBase(ch);}
+  var $=function(id){return document.getElementById(id);};
+  var lastRoku=null,lastSeimei=null;
+  var photos={left:null,palmL:null,venusL:null,moonL:null,right:null,palmR:null,venusR:null,moonR:null,face:null};
+
+  function fillDOB(){
+    var yy=$("yy"),mm=$("mm"),dd=$("dd");var now=new Date().getFullYear();
+    yy.innerHTML='<option value="">年</option>';for(var y=now;y>=1920;y--)yy.innerHTML+='<option value="'+y+'">'+y+'</option>';
+    mm.innerHTML='<option value="">月</option>';for(var m=1;m<=12;m++)mm.innerHTML+='<option value="'+m+'">'+m+'</option>';
+    updateDays();
+  }
+  function updateDays(){
+    var y=+$("yy").value,m=+$("mm").value,dd=$("dd");var cur=dd.value;
+    var max=(y&&m)?new Date(y,m,0).getDate():31;
+    dd.innerHTML='<option value="">日</option>';for(var d=1;d<=max;d++)dd.innerHTML+='<option value="'+d+'">'+d+'</option>';
+    if(cur&&+cur<=max)dd.value=cur;
+  }
+
+  function buildEditor(){
+    var sei=Array.from(($("sei").value||"").trim());
+    var mei=Array.from(($("mei").value||"").trim());
+    var prev={};document.querySelectorAll(".si").forEach(function(el){prev[el.dataset.k]=el.value;});
+    function group(label,arr,pfx){
+      if(!arr.length)return "";
+      var h='<div><div style="font-size:10px;color:var(--washiSub)">'+label+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
+      arr.forEach(function(ch,i){
+        var k=pfx+i;var km=kyuji&&KYUUJI[ch];var auto=autoStroke(ch);
+        var v=(prev[k]!=null&&prev[k]!=="")?prev[k]:(auto!=null?String(auto):"");
+        var bad=(auto==null&&(prev[k]==null||prev[k]===""));
+        h+='<div style="text-align:center"><div style="font-family:var(--mincho);font-size:18px;color:var(--washi)">'+ch+'</div>'+(km?'<div style="font-size:11px;color:var(--gold);font-family:var(--mincho)">→'+KYUUJI[ch][0]+'</div>':'')+'<input class="si'+(bad?' bad':'')+'" data-k="'+k+'" inputmode="numeric" value="'+v+'"><div style="font-size:9px;color:var(--mute)">画</div></div>';
+      });
+      return h+'</div></div>';
+    }
+    $("editor").innerHTML=group("姓",sei,"s")+group("名",mei,"m");
+    document.querySelectorAll(".si").forEach(function(el){el.addEventListener("input",function(){el.value=el.value.replace(/[^0-9]/g,"");recompute();});});
+  }
+  function calcSeimei(){
+    var sei=Array.from(($("sei").value||"").trim());
+    var mei=Array.from(($("mei").value||"").trim());
+    if(!sei.length||!mei.length)return{ok:false,reason:"姓と名の両方を入力してください。"};
+    var vals={};document.querySelectorAll(".si").forEach(function(el){vals[el.dataset.k]=el.value;});
+    function st(pfx,arr){return arr.map(function(ch,i){var raw=vals[pfx+i];return (raw!=null&&raw!=="")?parseInt(raw,10):autoStroke(ch);});}
+    var ss=st("s",sei),ms=st("m",mei);
+    if(ss.indexOf(null)>=0||ms.indexOf(null)>=0||ss.some(isNaN)||ms.some(isNaN))return{ok:false,reason:"未確定の画数があります（赤枠を入力）。"};
+    var sumS=ss.reduce(function(a,b){return a+b;},0),sumM=ms.reduce(function(a,b){return a+b;},0);
+    var ten=sumS+(sei.length===1?1:0),chi=sumM+(mei.length===1?1:0),jin=ss[ss.length-1]+ms[0],sou=sumS+sumM,gai=ten+chi-jin;
+    var five=[["天格",ten],["人格",jin],["地格",chi],["外格",gai],["総格",sou]].map(function(p){return{label:p[0],val:p[1],ku:ku(p[1])};});
+    var steps=["画数 "+sei.map(function(c,i){return c+"="+ss[i];}).join(" ")+" / "+mei.map(function(c,i){return c+"="+ms[i];}).join(" "),"天格"+ten+"("+ku(ten)+") 人格"+jin+"("+ku(jin)+") 地格"+chi+"("+ku(chi)+") 外格"+gai+"("+ku(gai)+") 総格"+sou+"("+ku(sou)+")"];
+    return{ok:true,five:five,steps:steps,mode:kyuji?"旧字体(康熙)":"標準(常用)"};
+  }
+  function recompute(){
+    lastRoku=calcRokusei(+$("yy").value,+$("mm").value,+$("dd").value);
+    if(!$("yy").value||!$("mm").value||!$("dd").value){$("roku").textContent="—";$("rokuSteps").textContent="";}
+    else if(lastRoku.ok){$("roku").textContent="運命星："+lastRoku.label;$("rokuSteps").textContent=lastRoku.steps.join("　");}
+    else{$("roku").textContent=lastRoku.reason;$("rokuSteps").textContent="";}
+    lastSeimei=calcSeimei();var g=$("gokaku");
+    if(lastSeimei.ok){g.innerHTML=lastSeimei.five.map(function(f){var col=f.ku==="凶"?"var(--shu)":f.ku==="半吉"?"var(--gold)":"var(--ai)";return '<div class="card"><div class="lb">'+f.label+'</div><div class="vl">'+f.val+'</div><div class="ku" style="color:'+col+'">'+f.ku+'</div></div>';}).join("");$("seimeiSteps").textContent="";}
+    else{g.innerHTML="";$("seimeiSteps").textContent=(($("sei").value||$("mei").value)?lastSeimei.reason:"");}
+  }
+
+  function setPhoto(id,url){photos[id]=url;var t=$("t-"+id);t.innerHTML='<img src="'+url+'">';saveState();}
+
+  function guideSVG(kind,id){
+    var isLeft=(id==="left"||/L$/.test(id));
+    var wrap=function(inner){return '<svg viewBox="0 0 200 280" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">'+(isLeft&&(kind==="hand"||kind==="palm")?'<g transform="translate(200,0) scale(-1,1)">'+inner+'</g>':inner)+'</svg>';};
+    if(kind==="face"){
+      return '<svg viewBox="0 0 200 280" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"><g fill="rgba(201,162,39,0.08)" stroke="#C9A227" stroke-width="2.6" stroke-dasharray="10 8" opacity="0.95"><ellipse cx="100" cy="140" rx="84" ry="122"/></g><g fill="none" stroke="#C9A227" stroke-width="1.5" stroke-dasharray="3 9" opacity="0.45"><line x1="100" y1="30" x2="100" y2="250"/><line x1="20" y1="140" x2="180" y2="140"/></g></svg>';
+    }
+    if(kind==="palm"){
+      return wrap('<g fill="rgba(201,162,39,0.08)" stroke="#C9A227" stroke-width="2.6" stroke-dasharray="11 8"><rect x="32" y="38" width="136" height="204" rx="44"/></g><g fill="none" stroke="#C9A227" stroke-width="1.6" stroke-dasharray="4 9" opacity="0.5"><path d="M150,66 C118,92 92,150 72,232"/><path d="M44,92 C92,104 132,114 162,128"/><path d="M46,120 C96,132 132,150 156,182"/></g>');
+    }
+    if(kind==="venus"||kind==="moon"){
+      return wrap('<g fill="rgba(201,162,39,0.08)" stroke="#C9A227" stroke-width="2.6" stroke-dasharray="11 8"><rect x="32" y="38" width="136" height="204" rx="44"/></g><g fill="rgba(201,162,39,0.06)" stroke="#C9A227" stroke-width="2.2" stroke-dasharray="9 8" opacity="0.9"><ellipse cx="100" cy="140" rx="66" ry="92"/></g>');
+    }
+    // hand（左手/右手）＝見本トレース。左手は上のwrapで左右反転
+    var hand='<path d="M111.1,47.6 C108.6,47.3 104.5,48.0 102.1,50.0 C99.6,52.1 98.5,46.0 96.6,59.9 C94.8,73.8 92.7,122.2 90.9,133.3 C89.1,144.4 89.9,138.1 86.0,126.5 C82.1,115.0 71.9,75.3 67.4,63.8 C62.9,52.3 62.0,57.5 58.9,57.4 C55.8,57.3 50.3,58.5 48.7,63.2 C47.1,67.8 46.8,72.9 49.2,85.5 C51.6,98.1 61.1,125.9 63.0,138.9 C64.8,151.8 62.3,159.8 60.4,163.0 C58.4,166.2 57.6,164.5 51.5,157.9 C45.4,151.2 30.2,129.0 23.9,123.1 C17.6,117.2 16.5,121.4 13.7,122.6 C10.9,123.8 7.6,126.6 7.0,130.3 C6.4,134.0 2.5,130.8 10.3,144.9 C18.1,159.0 44.9,201.4 54.0,214.9 C63.0,228.3 60.2,222.8 64.5,225.7 C68.7,228.6 71.5,231.3 79.2,232.4 C87.0,233.5 102.1,234.2 110.9,232.4 C119.8,230.7 126.8,226.7 132.3,221.9 C137.7,217.1 139.8,212.0 143.8,203.5 C147.7,195.1 148.9,182.1 155.7,171.2 C162.5,160.3 178.3,146.2 184.5,138.0 C190.7,129.8 192.3,126.3 193.0,122.1 C193.7,117.9 190.9,114.4 188.4,113.1 C185.9,111.7 184.3,108.6 177.7,114.1 C171.2,119.6 155.0,140.3 149.2,146.1 C143.4,151.9 140.6,159.5 142.9,148.9 C145.3,138.3 160.2,95.1 163.3,82.5 C166.3,70.0 163.1,75.4 161.2,73.3 C159.2,71.3 154.6,69.7 151.6,70.4 C148.6,71.1 147.7,67.5 143.1,77.5 C138.5,87.4 128.3,119.8 124.1,130.0 C119.8,140.2 118.2,150.0 117.5,138.7 C116.7,127.4 119.7,76.7 119.6,62.2 C119.6,47.7 118.6,54.3 117.2,51.8 C115.7,49.4 113.6,47.9 111.1,47.6 Z" fill="rgba(201,162,39,0.12)" stroke="#C9A227" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="11 8" opacity="0.97"/>';
+    return wrap(hand);
+  }
+
+  var stream=null,curId=null;
+  function ensureStream(){
+    if(stream&&stream.active)return Promise.resolve(stream);
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return Promise.reject(new Error("nocam"));
+    return navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280}},audio:false})
+      .then(function(s){stream=s;return s;})
+      .catch(function(){return navigator.mediaDevices.getUserMedia({video:true,audio:false}).then(function(s){stream=s;return s;});});
+  }
+  var LABELS={
+    left:["①左手全体","手のひら全体を枠に合わせ、指は軽く開いてください（先天運）"],
+    right:["②右手全体","手のひら全体を枠に合わせ、指は軽く開いてください（後天運）"],
+    palmL:["③手のひらアップ（左）","左手の手のひらを近づけ、3本の主要線をはっきり写してください"],
+    palmR:["③手のひらアップ（右）","右手の手のひらを近づけ、3本の主要線をはっきり写してください"],
+    venusL:["④金星丘（左）","左手・親指の付け根のふくらみを枠の中心に大きく写してください"],
+    venusR:["④金星丘（右）","右手・親指の付け根のふくらみを枠の中心に大きく写してください"],
+    moonL:["⑤月丘（左）","左手・小指側/手首寄りのふくらみを枠の中心に大きく写してください"],
+    moonR:["⑤月丘（右）","右手・小指側/手首寄りのふくらみを枠の中心に大きく写してください"],
+    face:["⑥正面顔","顔を楕円の枠に合わせてください（人相）"]
+  };
+  function openCamera(id,kind){
+    curId=id;$("camerr").textContent="";
+    var lb=LABELS[id]||["撮影",""];
+    $("camTitle").textContent=lb[0]+"を撮影";
+    $("guide").innerHTML=guideSVG(kind,id);
+    $("guideLbl").textContent=lb[1];
+    $("video").style.transform="scaleX(-1)";
+    $("cam").style.display="flex";
+    ensureStream().then(function(s){var v=$("video");v.srcObject=s;v.onloadedmetadata=function(){v.play&&v.play();};v.play&&v.play();}).catch(function(e){$("camerr").textContent="カメラを起動できませんでした（"+(e&&e.name||"")+"）。「閉じる」→「ファイル」から選んでください。";});
+  }
+  function closeCamera(){$("cam").style.display="none";}
+  window.addEventListener("beforeunload",function(){if(stream)stream.getTracks().forEach(function(t){t.stop();});});
+  function shoot(){
+    var v=$("video");if(!v.videoWidth){$("camerr").textContent="読み込み中です。1〜2秒待ってもう一度押してください。";return;}
+    var w=v.videoWidth,h=v.videoHeight,mx=1100,s=Math.min(1,mx/Math.max(w,h));
+    var cv=$("canvas");cv.width=Math.round(w*s);cv.height=Math.round(h*s);
+    var ctx=cv.getContext("2d");
+    ctx.translate(cv.width,0);ctx.scale(-1,1);
+    ctx.drawImage(v,0,0,cv.width,cv.height);
+    setPhoto(curId,cv.toDataURL("image/jpeg",0.85));closeCamera();
+  }
+
+  var pickTarget=null;
+  function pickFor(id){pickTarget=id;$("fileInput").value="";$("fileInput").click();}
+  function downscaleDataUrl(durl,cb){var img=new Image();img.onload=function(){var w=img.width,h=img.height,mx=1100,s=Math.min(1,mx/Math.max(w,h));var c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.85));};img.onerror=function(){cb(durl);};img.src=durl;}
+  $("fileInput").addEventListener("change",function(e){var f=e.target.files[0];if(!f||!pickTarget)return;var r=new FileReader();r.onload=function(){downscaleDataUrl(r.result,function(small){setPhoto(pickTarget,small);});};r.readAsDataURL(f);});
+
+  function dl(name,url){var a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},100);}
+  function saveAll(){
+    var map={left:"①左手全体.jpg",palmL:"③手のひら左.jpg",venusL:"④金星丘左.jpg",moonL:"⑤月丘左.jpg",right:"②右手全体.jpg",palmR:"③手のひら右.jpg",venusR:"④金星丘右.jpg",moonR:"⑤月丘右.jpg",face:"⑥正面顔.jpg"};var n=0,i=0;
+    Object.keys(map).forEach(function(id){if(photos[id]){setTimeout(function(){dl(map[id],photos[id]);},i*400);i++;n++;}});
+    $("copied").textContent=n?(n+"枚を保存しました。Claudeに貼り付ける際この写真を添付してください。"):"撮影済みの写真がありません。";
+  }
+
+  function buildMsg(){
+    var L=[];
+    L.push("あなたは世界最高峰の『手相鑑定師・六星占術鑑定士・姓名判断鑑定士』です。依頼者は“当たるか”ではなく、本気で人生を改善するために鑑定を受けています。耳障りの良い励まし・無難な一般論・心理学的な逃げは一切禁止。観察できる特徴から論理的に読める内容を、最大限具体的に、断言ベースで、長文かつ高密度で鑑定してください（プロが数万円で提供する密度）。","");
+    L.push("【厳守ルール】");
+    L.push("・曖昧表現禁止。『可能性があります』ではなく断言で読む。写真から物理的に読めない部分のみ『判定不能』と明記し、それ以外は逃げない。");
+    L.push("・良い点だけでなく弱点・欠点を遠慮なく厳しく指摘する。忖度しない。");
+    L.push("・必ず根拠を明示。手相は毎回『どの線／どの丘／どの形状からそう読めるか』を書く（例：生命線が深く長い→体力と回復力が強い／知能線が月丘へ下がる→想像力が強い／運命線が中年以降濃くなる→後半運が強い）。");
+    L.push("・手相は 線の濃さ・長さ・形状・分岐・島・切れ・クロス・スター・フィッシュ・各丘(金星丘/月丘/木星丘/土星丘/太陽丘/水星丘)の発達・手の形・指の長さ・爪・左右差 まで総合判断する。");
+    L.push("・左手＝先天運（生まれ持った素質）、右手＝後天運（現在〜未来の実像）。左右差を必ず比較分析する。");
+    L.push("・下記の六星占術・姓名判断は確定計算済み。再計算せず解釈に用いる。");
+    L.push("");
+    var y=$("yy").value,m=$("mm").value,d=$("dd").value;
+    L.push("■生年月日："+((y&&m&&d)?y+"年"+m+"月"+d+"日":"未入力"));
+    if(lastRoku&&lastRoku.ok){L.push("■六星占術（確定）：運命星 "+lastRoku.label);lastRoku.steps.forEach(function(s){L.push("  "+s);});}
+    else L.push("■六星占術：未算出（"+(lastRoku?lastRoku.reason:"未入力")+"）");
+    var nm=(($("sei").value||"")+($("mei").value||"")).trim();
+    L.push("■姓名："+(nm||"未入力"));
+    if(lastSeimei&&lastSeimei.ok){L.push("■姓名判断・五格（確定／熊崎式 "+lastSeimei.mode+"）");lastSeimei.steps.forEach(function(s){L.push("  "+s);});}
+    else L.push("■姓名判断：画数未確定のため省略");
+    L.push("■添付写真：【左手】全体"+(photos.left?"✓":"なし")+"・手のひら"+(photos.palmL?"✓":"なし")+"・金星丘"+(photos.venusL?"✓":"なし")+"・月丘"+(photos.moonL?"✓":"なし")+" ／【右手】全体"+(photos.right?"✓":"なし")+"・手のひら"+(photos.palmR?"✓":"なし")+"・金星丘"+(photos.venusR?"✓":"なし")+"・月丘"+(photos.moonR?"✓":"なし")+" ／【顔】"+(photos.face?"✓":"なし")+"。各写真の頭に【写真：名称】を付けてあるので対応づけて精密に読むこと。左手＝先天運・右手＝後天運として、手のひら/金星丘/月丘も左右を必ず比較分析する。顔写真があれば人相（額・眉・目・鼻・口・輪郭・全体の相）も読み、手相・占術と統合する。");
+    L.push("");
+    L.push("【鑑定項目（すべて根拠付きで詳細に）】");
+    L.push("■性格の本質：生まれ持った性質／思考パターン／判断基準／強み／弱み");
+    L.push("■表の顔と本音：周囲から見られる人物像／実際の内面／そのギャップ");
+    L.push("■才能：天職／向く働き方／突出した能力／眠っている才能");
+    L.push("■仕事運：会社員適性／管理職適性／専門職適性／独立適性");
+    L.push("■経営者適性：事業家型か投資家型か職人型か／組織構築力／リーダー資質");
+    L.push("■金運：稼ぐ力／貯める力／投資適性／お金で失敗しやすい点／金運ピーク時期");
+    L.push("■今後伸びる分野：今後5年で伸びる能力／挑戦すべき分野／避けるべき分野");
+    L.push("■人からどう見られるか：第一印象／信頼度／異性からの印象／同性からの印象");
+    L.push("■恋愛傾向：恋愛パターン／惹かれやすい相手／失敗しやすい恋愛");
+    L.push("■結婚運：結婚の質／結婚時期／結婚後の課題／離婚リスク");
+    L.push("■人生の転機：過去の大きな転機／今後の転機／運命が変わる時期");
+    L.push("■今後5年の流れ：1年ごとに詳細に分析");
+    L.push("■晩年運：老後の幸福度／経済面／人間関係");
+    L.push("■健康面：注意すべき部位／ストレス傾向／生活習慣改善点");
+    L.push("■運気を上げる行動：今すぐ始める／習慣化する");
+    L.push("■運気を落とす行動：やってはいけない／離れるべき環境");
+    L.push("【六星占術】運命星の本質／人生の流れ／今後5年／大殺界の影響と時期／仕事運／金運／恋愛運。");
+    L.push("【姓名判断】天格・人格・地格・外格・総格をもとに 成功運／対人運／家庭運／晩年運。");
+    L.push("【最後に必ずまとめる】①現在の人生ステージ ②人生最大の強み ③人生最大の弱点 ④今後最大のチャンス ⑤今後最大の危険 ⑥今後5年で最も重要な決断 ⑦本気で人生を変える具体的行動TOP10 ⑧総合評価（100点満点・辛口採点＋減点理由）。");
+    return L.join("\n");
+  }
+
+  $("yy").addEventListener("change",function(){updateDays();recompute();saveState();});
+  $("mm").addEventListener("change",function(){updateDays();recompute();saveState();});
+  $("dd").addEventListener("change",function(){recompute();saveState();});
+  $("sei").addEventListener("input",function(){buildEditor();recompute();saveState();});
+  $("mei").addEventListener("input",function(){buildEditor();recompute();saveState();});
+  $("kyuji").addEventListener("click",function(){kyuji=!kyuji;var b=$("kyuji");b.textContent="旧字体（康熙）で数える："+(kyuji?"ON":"OFF");b.className="toggle"+(kyuji?" on":"");buildEditor();recompute();});
+  document.querySelectorAll(".cam").forEach(function(b){b.addEventListener("click",function(){openCamera(b.dataset.id,b.dataset.kind);});});
+  document.querySelectorAll(".pick").forEach(function(b){b.addEventListener("click",function(){pickFor(b.dataset.id);});});
+  function goStep(n){for(var i=0;i<=4;i++){var el=$("step"+i);if(el)el.style.display=(i===n)?"block":"none";}try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}}
+  function bindNav(id,n){var b=$(id);if(b)b.addEventListener("click",function(){goStep(n);});}
+  bindNav("to2",2);bindNav("back1",1);bindNav("to3",3);bindNav("back2",2);bindNav("to4",4);bindNav("back3",3);bindNav("toMode",0);
+  var appMode="pc";
+  function applyMode(){var sp=(appMode==="sp");
+    document.querySelectorAll(".cam").forEach(function(b){b.style.display=sp?"none":"";});
+    document.querySelectorAll(".pick").forEach(function(b){b.textContent=sp?"📷 撮影 / 選択":"ファイル";b.classList.toggle("primary",sp);});
+  }
+  function setMode(m){appMode=m;try{localStorage.setItem("kantei_mode",m);}catch(e){}applyMode();goStep(1);}
+  (function(){var pc=$("modePC"),sp=$("modeSP");if(pc)pc.addEventListener("click",function(){setMode("pc");});if(sp)sp.addEventListener("click",function(){setMode("sp");});
+    try{var sm=localStorage.getItem("kantei_mode");if(sm){appMode=sm;applyMode();}}catch(e){}})();
+  (function(){var cb=$("clearPhotos");if(cb)cb.addEventListener("click",function(){if(!confirm("保存した撮影写真をすべて消去します。よろしいですか？"))return;for(var k in photos){photos[k]=null;var t=$("t-"+k);if(t)t.textContent="未撮影";}saveState();});})();
+  $("shutter").addEventListener("click",shoot);
+  $("camclose").addEventListener("click",closeCamera);
+  // APIキー・モデルの保存/復元
+  try{var sk=localStorage.getItem("gemini_key");if(sk)$("apikey").value=sk;var sm=localStorage.getItem("gemini_model");if(sm)$("model").value=sm;}catch(e){}
+  $("apikey").addEventListener("input",function(){try{localStorage.setItem("gemini_key",$("apikey").value);}catch(e){}});
+  $("model").addEventListener("input",function(){try{localStorage.setItem("gemini_model",$("model").value);}catch(e){}});
+  // 入力（生年月日・姓名・写真）の自動保存／復元
+  function saveState(){try{localStorage.setItem("kantei_state",JSON.stringify({yy:$("yy").value,mm:$("mm").value,dd:$("dd").value,sei:$("sei").value,mei:$("mei").value,photos:photos}));}catch(e){}}
+  function restoreState(){try{var raw=localStorage.getItem("kantei_state");if(!raw)return;var st=JSON.parse(raw);
+    if(st.yy)$("yy").value=st.yy;if(st.mm)$("mm").value=st.mm;if(typeof updateDays==="function")updateDays();if(st.dd)$("dd").value=st.dd;
+    if(st.sei)$("sei").value=st.sei;if(st.mei)$("mei").value=st.mei;
+    if(st.photos){for(var k in photos){if(st.photos[k]){photos[k]=st.photos[k];var t=$("t-"+k);if(t)t.innerHTML='<img src="'+st.photos[k]+'">';}}}
+    if(typeof buildEditor==="function")buildEditor();if(typeof recompute==="function")recompute();
+  }catch(e){}}
+  restoreState();
+
+  function fmtResult(s){
+    s=s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    s=s.replace(/【([^】]+)】/g,'<span class="brk">【$1】</span>');
+    s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+    return s.split("\n").map(function(ln){
+      var t=ln.trim();
+      if(!t)return '<div style="height:8px"></div>';
+      if(/^#{1,6}\s/.test(t))return '<div class="h">'+t.replace(/^#{1,6}\s/,"")+'</div>';
+      if(/^[・\-*●]\s?/.test(t))return '<div class="li">・'+t.replace(/^[・\-*●]\s?/,"")+'</div>';
+      return '<div class="p">'+t+'</div>';
+    }).join("");
+  }
+  function splitDataUrl(u){var m=u.match(/^data:([^;]+);base64,(.*)$/);return m?{mime:m[1],b64:m[2]}:null;}
+  function _sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  function _isTransient(m){m=(m||"").toLowerCase();return /high demand|overload|unavailable|try again later|rate limit|resource has been exhausted|exhausted|\b429\b|\b503\b|\b500\b|internal error/.test(m);}
+  function _isAuthErr(m){m=(m||"").toLowerCase();return /api key|api_key|permission.?denied|unauthorized|invalid.*(key|credential)|api key not valid/.test(m);}
+  function _genCfg(model){
+    var is25=/2\.5/.test(model);
+    var cfg={temperature:0.7,maxOutputTokens:is25?32768:8192};
+    if(is25)cfg.thinkingConfig={thinkingBudget:8192};
+    return cfg;
+  }
+  async function _post(contents,model,key){
+    var body={contents:contents,generationConfig:_genCfg(model)};
+    var url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key);
+    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    var d=await r.json().catch(function(){return {};});
+    if(!r.ok)throw new Error((d.error&&d.error.message)||("HTTP "+r.status));
+    var c=d.candidates&&d.candidates[0];
+    if(!c)throw new Error("応答が空でした"+(d.promptFeedback&&d.promptFeedback.blockReason?("／"+d.promptFeedback.blockReason):""));
+    var txt=((c.content&&c.content.parts)||[]).map(function(p){return p.text||"";}).join("");
+    return {text:txt,finish:(c.finishReason||"")};
+  }
+  async function callGeminiOnce(promptText,images,model,key){
+    var uparts=[{text:promptText}];
+    images.forEach(function(im){if(im.label)uparts.push({text:"【写真："+im.label+"】"});uparts.push({inline_data:{mime_type:im.mime,data:im.b64}});});
+    var contents=[{role:"user",parts:uparts}];
+    var res=await _post(contents,model,key);
+    if(!res.text)throw new Error("テキスト応答なし（"+res.finish+"）");
+    var out=res.text,tries=0;
+    while(res.finish==="MAX_TOKENS"&&tries<3){
+      tries++;
+      if($("status"))$("status").textContent="鑑定文が長いため続きを生成中…（"+tries+"/3）";
+      contents.push({role:"model",parts:[{text:res.text}]});
+      contents.push({role:"user",parts:[{text:"直前の鑑定文の続きを、挨拶や重複を入れず途中から、最後（⑧総合評価100点満点）まで書き切ってください。"}]});
+      res=await _post(contents,model,key);
+      out+=res.text;
+    }
+    return out;
+  }
+  async function callGemini(promptText,images){
+    var key=$("apikey").value.trim();
+    var primary=$("model").value.trim()||"gemini-2.5-flash";
+    var models=[primary];
+    ["gemini-2.0-flash","gemini-flash-latest","gemini-2.5-flash-lite"].forEach(function(m){if(models.indexOf(m)<0)models.push(m);});
+    var lastErr;
+    for(var mi=0;mi<models.length;mi++){
+      var model=models[mi];
+      for(var attempt=1;attempt<=3;attempt++){
+        try{
+          if(mi>0||attempt>1)$("status").textContent="混雑のため再試行中…（モデル "+model+"／"+attempt+"回目）少々お待ちください";
+          return await callGeminiOnce(promptText,images,model,key);
+        }catch(e){
+          lastErr=e;var msg=(e&&e.message)||"";
+          if(_isAuthErr(msg))throw e;
+          if(_isTransient(msg)){await _sleep(attempt*2000);continue;}
+          break;
+        }
+      }
+    }
+    throw lastErr||new Error("不明なエラー");
+  }
+  function renderResult(txt){
+    $("resultView").innerHTML=fmtResult(txt);
+    var nm=(($("sei").value||"")+($("mei").value||"")).trim();
+    var y=$("yy").value,m=$("mm").value,d=$("dd").value;
+    $("printHead").textContent="統合鑑定結果　"+(nm?nm+"　":"")+((y&&m&&d)?"（"+y+"."+m+"."+d+"）":"");
+    $("resultSect").style.display="block";
+    $("resultSect").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  async function doKantei(){
+    if(!$("apikey").value.trim()){$("status").textContent="Gemini APIキーを入力してください（下のキー欄）。";return;}
+    if((!lastRoku||!lastRoku.ok)&&(!lastSeimei||!lastSeimei.ok)){$("status").textContent="生年月日か姓名のどちらかを入力してください。";return;}
+    $("status").textContent="鑑定中…（写真の解析に少し時間がかかります）";
+    $("kantei").disabled=true;
+    try{
+      var LB={left:"①左手全体",palmL:"③手のひら(左)",venusL:"④金星丘(左)",moonL:"⑤月丘(左)",right:"②右手全体",palmR:"③手のひら(右)",venusR:"④金星丘(右)",moonR:"⑤月丘(右)",face:"⑥正面顔"};
+      var imgs=[];["left","palmL","venusL","moonL","right","palmR","venusR","moonR","face"].forEach(function(id){if(photos[id]){var p=splitDataUrl(photos[id]);if(p){p.label=LB[id];imgs.push(p);}}});
+      var txt=await callGemini(buildMsg(),imgs);
+      renderResult(txt);
+      $("status").textContent="鑑定完了。";
+    }catch(e){
+      var m=(e&&e.message)||String(e);
+      if(_isTransient(m)){
+        $("status").textContent="Gemini側が混雑中で取得できませんでした。1〜2分おいて再度「鑑定する」を押すか、モデル欄を gemini-2.0-flash に変えてお試しください。";
+      }else if(_isAuthErr(m)){
+        $("status").textContent="APIキーが無効か権限不足の可能性があります。キーをご確認ください（"+m+"）。";
+      }else{
+        $("status").textContent="鑑定に失敗："+m+"（キー・モデル名・通信をご確認ください）";
+      }
+    }finally{$("kantei").disabled=false;}
+  }
+  $("kantei").addEventListener("click",doKantei);
+  $("pdf").addEventListener("click",function(){setTimeout(function(){window.print();},100);});
+
+  fillDOB();buildEditor();recompute();
+})();
+</script>
+</body>
+</html>
