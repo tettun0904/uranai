@@ -219,7 +219,7 @@
 
 <div class="cammodal" id="cam">
   <div class="camtitle" id="camTitle">撮影</div>
-  <div class="camver" id="camver">ガイド版 G26（機材選択）</div>
+  <div class="camver" id="camver">ガイド版 G27（現在年を正しく）</div>
   <div class="camstage">
     <video id="video" autoplay playsinline muted></video>
     <div class="guide" id="guide"></div>
@@ -396,6 +396,8 @@
     L.push("・下記の六星占術・姓名判断は確定計算済み。再計算せず解釈に用いる。");
     L.push("");
     var y=$("yy").value,m=$("mm").value,d=$("dd").value;
+    var _now=new Date(),_cy=_now.getFullYear();
+    L.push("■本日の日付："+_cy+"年"+(_now.getMonth()+1)+"月"+_now.getDate()+"日（これが現在の基準日）。『今後5年の流れ』は必ず "+_cy+"年（今年＝現在）から "+(_cy+4)+"年までを1年ごとに分析すること。"+(_cy-1)+"年以前を『現在』として扱わない。年号を絶対に間違えないこと。");
     L.push("■生年月日："+((y&&m&&d)?y+"年"+m+"月"+d+"日":"未入力"));
     if(lastRoku&&lastRoku.ok){L.push("■六星占術（確定）：運命星 "+lastRoku.label);lastRoku.steps.forEach(function(s){L.push("  "+s);});}
     else L.push("■六星占術：未算出（"+(lastRoku?lastRoku.reason:"未入力")+"）");
