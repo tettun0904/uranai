@@ -204,7 +204,18 @@
   <div class="sect" id="resultSect" style="display:none">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">
       <div style="font-family:var(--mincho);font-size:18px;color:var(--washi)" id="printHead">鑑定結果</div>
-      <button class="act gold" id="pdf" style="flex:0 0 auto;min-width:auto;padding:10px 20px;letter-spacing:1px">印刷 / PDFで保存</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="act primary" id="sumBtn" style="flex:0 0 auto;min-width:auto;padding:10px 18px;letter-spacing:1px">✦ 要約する</button>
+        <button class="act gold" id="pdf" style="flex:0 0 auto;min-width:auto;padding:10px 20px;letter-spacing:1px">印刷 / PDFで保存</button>
+      </div>
+    </div>
+    <div id="sumStatus" class="copied" style="margin:0 0 10px"></div>
+    <div id="summaryWrap" style="display:none;margin-bottom:18px">
+      <div class="panel" style="border-color:var(--ai)">
+        <div style="font-family:var(--mincho);color:var(--ai);font-size:15px;margin-bottom:10px">✦ 要点まとめ（要約）</div>
+        <div id="summaryView" style="font-size:14px;line-height:1.9"></div>
+        <div style="font-size:11px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">※下の詳細な鑑定本文をAIが要約したものです。詳しくは本文をご覧ください。</div>
+      </div>
     </div>
     <div id="resultView"></div>
   </div>
@@ -534,13 +545,57 @@
       +'<div style="font-size:12px;color:var(--mute);margin-top:8px">'+dai+'。年運は生年月日から一意に確定する数値です。</div>'
       +'</div>';
   }
+  var lastResultText="";
   function renderResult(txt){
+    lastResultText=txt;
     $("resultView").innerHTML=confirmedRokuseiHTML()+fmtResult(txt)+'<div style="margin-top:22px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--mute);line-height:1.7">※本鑑定はAIによる解析結果であり、娯楽を目的とするものです。医療・健康・法律・投資・結婚その他の重要な判断の根拠としないでください。記載内容について運営者は一切の責任を負いません。</div>';
+    // 新しい鑑定が出たら、前回の要約はリセット
+    $("summaryWrap").style.display="none";$("summaryView").innerHTML="";$("sumStatus").textContent="";
+    var sb=$("sumBtn");if(sb){sb.textContent="✦ 要約する";sb.disabled=false;}
     var nm=(($("sei").value||"")+($("mei").value||"")).trim();
     var y=$("yy").value,m=$("mm").value,d=$("dd").value;
     $("printHead").textContent="統合鑑定結果　"+(nm?nm+"　":"")+((y&&m&&d)?"（"+y+"."+m+"."+d+"）":"");
     $("resultSect").style.display="block";
     $("resultSect").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  // ===== 要約 =====
+  // 鑑定本文(lastResultText)をAIに要約させ、結果上部のボックスに表示する。
+  // 六星占術の年運は確定計算で機械置換し、要約でも年がズレないようにする。
+  async function summarize(){
+    if(!lastResultText){$("sumStatus").textContent="先に鑑定を実行してください。";return;}
+    var btn=$("sumBtn");btn.disabled=true;
+    $("sumStatus").textContent="要約を作成中…（10〜30秒ほどお待ちください）";
+    try{
+      var prompt=[
+        "以下は、ある人の統合鑑定結果の全文です。本人がひと目で要点をつかめるよう、やさしい日本語で要約してください。",
+        "",
+        "【条件】",
+        "・全体で400〜600字程度。",
+        "・次の順で、見出し（行頭に ■）＋短い箇条書き（行頭に ・）でまとめる：",
+        "　■運勢の核（運命星と、今後の年運・大殺界の年）",
+        "　■性格・強み",
+        "　■気をつけたい点",
+        "　■開運のヒント（具体的な行動を2〜3個）",
+        "・六星占術の年号・運気名・大殺界の年は、本文に書かれているとおり正確に引用すること（勝手に変えない）。",
+        "・前置きや「了解しました」などは書かず、要約本文だけを返す。",
+        "",
+        "--- 鑑定結果 全文 ---",
+        "",
+        lastResultText
+      ].join("\n");
+      var sum=await callGemini(prompt,[]);
+      if(lastRoku&&lastRoku.ok&&lastRoku.si){var info=confirmedCycleInfo();sum=hardFixAdjacent(sum,info);sum=hardFixDaisatsuRanges(sum,info);}
+      $("summaryView").innerHTML=fmtResult(sum);
+      $("summaryWrap").style.display="block";
+      $("sumStatus").textContent="";
+      btn.textContent="✦ 要約をやり直す";
+      $("summaryWrap").scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(e){
+      var m=(e&&e.message)||String(e);
+      if(_isTransient(m)){$("sumStatus").textContent="Gemini側が混雑中で要約を取得できませんでした。少し時間をおいて再度「要約する」を押してください。";}
+      else if(_isAuthErr(m)){$("sumStatus").textContent="アクセスコードが無効か、現在ご利用いただけません。";}
+      else{$("sumStatus").textContent="要約に失敗："+m;}
+    }finally{btn.disabled=false;}
   }
   // ===== 年運ドリフト・ガード =====
   // AI本文に紛れ込んだ「年×運気」「大殺界の年」の誤りを、確定計算と突き合わせて潰す。
@@ -669,6 +724,7 @@
     }finally{$("kantei").disabled=false;}
   }
   $("kantei").addEventListener("click",doKantei);
+  $("sumBtn").addEventListener("click",summarize);
   $("pdf").addEventListener("click",function(){setTimeout(function(){window.print();},100);});
 
   fillDOB();buildEditor();recompute();
