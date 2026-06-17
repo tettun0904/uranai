@@ -145,6 +145,10 @@
         <div class="steps" id="seimeiSteps" style="margin-top:10px"></div>
       </div>
     </div>
+    <div class="note" style="align-items:flex-start">
+      <input type="checkbox" id="consent" style="width:18px;height:18px;margin-top:2px;accent-color:var(--shu);flex:0 0 auto">
+      <label for="consent" style="cursor:pointer;font-size:13px;color:var(--washiSub)">手相・人相の鑑定のため、撮影した<strong style="color:var(--washi)">顔・手の画像</strong>を、AI解析の目的で運営のサーバ経由により<strong style="color:var(--washi)">GoogleのGemini API</strong>へ送信することに同意します（送信データは学習には使用されません）。本鑑定は<strong style="color:var(--washi)">娯楽を目的</strong>とするもので、医療・法律・投資等の専門的助言ではありません。</label>
+    </div>
     <div class="navbtns"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="act ghost nav" id="toMode" style="min-width:auto;font-size:12px;padding:8px 12px">← 機材選択</button><button class="act ghost nav" id="clearPhotos" style="min-width:auto;font-size:12px;padding:8px 12px">保存写真を消去</button></div><button class="act primary nav" id="to2">写真撮影に進む →</button></div>
   </div>
 
@@ -186,14 +190,9 @@
       <div>「鑑定する」を押すと、入力内容と撮影した写真をAI（Gemini）に送り、結果をこの下に表示します（PDF保存も可）。写真が無い項目は「判定不能」になります。</div>
     </div>
     <div class="panel" style="margin-top:14px">
-      <label class="fl" for="apikey">Gemini APIキー（初回だけ入力・このブラウザに保存されます）</label>
-      <input id="apikey" type="password" placeholder="AIza... で始まるキー" autocomplete="off">
-      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
-        <span class="fl" style="margin:0">モデル</span>
-        <input id="model" type="text" value="gemini-2.5-flash" style="max-width:220px">
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="font-size:11px;color:var(--ai)">キーを取得</a>
-      </div>
-      <div style="font-size:11px;color:var(--mute);margin-top:10px">※キーはこのブラウザ内にのみ保存され、外部には送られません（鑑定リクエストはGoogleのGemini APIにのみ送信）。このファイルやキーを他人に渡さないでください。モデルは使えるものに変更可（例：gemini-2.0-flash / gemini-3.5-flash）。</div>
+      <label class="fl" for="accesscode">アクセスコード</label>
+      <input id="accesscode" type="text" placeholder="お渡ししたコードを入力" autocomplete="off" inputmode="text">
+      <div style="font-size:11px;color:var(--mute);margin-top:10px">※鑑定のご利用にはアクセスコードが必要です。紹介時にお渡ししたコードをご入力ください。<br>※入力内容・写真は、AI解析のため運営のサーバ経由でGoogleのGemini APIにのみ送信されます（学習には使用されません）。コードはこのブラウザに保存され、他サイトへは送信されません。</div>
     </div>
     <button class="act primary" id="kantei" style="width:100%;margin-top:18px;font-size:17px;padding:16px;letter-spacing:6px">鑑 定 す る</button>
     <div class="copied" id="status"></div>
@@ -211,7 +210,7 @@
   </div>
 
   <div class="foot">
-    使い方：①生年月日（ドロップダウン）と姓名を入れる→②手・顔を撮影（枠に合わせる）→③Gemini APIキーを入力（初回のみ）→④「鑑定する」を押すだけ。結果がこの下に表示され、上の「印刷 / PDFで保存」でPDFにできます。<br>
+    使い方：①生年月日（ドロップダウン）と姓名を入れる→②手・顔を撮影（枠に合わせる）→③アクセスコードを入力（初回のみ）→④「鑑定する」を押すだけ。結果がこの下に表示され、上の「印刷 / PDFで保存」でPDFにできます。<br>
     ※六星占術・姓名判断はこのツールが確定計算します（運命数表1950-2030と一致を検証済み／対応1873〜2100年）。画数は流派差があるため編集可能です。<br>
     ※カメラ許可は最初の1回だけ求められます（「サイトへのアクセス時は許可」を選ぶと次回以降も出にくくなります）。起動しない場合は「ファイル」ボタンから選べます。
   </div>
@@ -379,12 +378,7 @@
   function downscaleDataUrl(durl,cb){var img=new Image();img.onload=function(){var w=img.width,h=img.height,mx=1100,s=Math.min(1,mx/Math.max(w,h));var c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.85));};img.onerror=function(){cb(durl);};img.src=durl;}
   $("fileInput").addEventListener("change",function(e){var f=e.target.files[0];if(!f||!pickTarget)return;var r=new FileReader();r.onload=function(){downscaleDataUrl(r.result,function(small){setPhoto(pickTarget,small);});};r.readAsDataURL(f);});
 
-  function dl(name,url){var a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},100);}
-  function saveAll(){
-    var map={left:"①左手全体.jpg",palmL:"③手のひら左.jpg",venusL:"④金星丘左.jpg",moonL:"⑤月丘左.jpg",right:"②右手全体.jpg",palmR:"③手のひら右.jpg",venusR:"④金星丘右.jpg",moonR:"⑤月丘右.jpg",face:"⑥正面顔.jpg"};var n=0,i=0;
-    Object.keys(map).forEach(function(id){if(photos[id]){setTimeout(function(){dl(map[id],photos[id]);},i*400);i++;n++;}});
-    $("copied").textContent=n?(n+"枚を保存しました。Claudeに貼り付ける際この写真を添付してください。"):"撮影済みの写真がありません。";
-  }
+
 
   function buildMsg(){
     var L=[];
@@ -407,6 +401,7 @@
         L.push("■年運サイクル（生年月日から確定・細木式12運気・運命星"+lastRoku.label+"）：");
         L.push("　"+_yr.join(" / "));
         L.push("　★これは確定計算した唯一の正解。各年の運気名・大殺界の年は、上記を一字一句そのまま使うこと。AIが独自に運気を計算し直す・推測することを固く禁止する。");
+        L.push("　★鑑定結果ページの冒頭には、この確定年運表がシステムにより固定表示される。本文中の年号・運気名・大殺界の年は、必ずこの表と完全に一致させること（食い違いは重大な誤り）。");
         L.push("　★"+_cy+"年（今年）の運気は確定で「"+_cur.name+"」。"+(_cur.daisatsu?"今年は大殺界の年。":"今年は大殺界ではない（今を大殺界と書くのは重大な誤り）。"));
         if(_dai.length)L.push("　★大殺界（陰影→停止→減退の連続3年）に該当する年は "+_dai.join("・")+"年 のみ。これ以外の年を大殺界と書いてはならない。");
         else L.push("　★"+_cy+"〜"+(_cy+6)+"年の範囲に大殺界は無い。");
@@ -452,7 +447,12 @@
   document.querySelectorAll(".pick").forEach(function(b){b.addEventListener("click",function(){pickFor(b.dataset.id);});});
   function goStep(n){for(var i=0;i<=4;i++){var el=$("step"+i);if(el)el.style.display=(i===n)?"block":"none";}try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}}
   function bindNav(id,n){var b=$(id);if(b)b.addEventListener("click",function(){goStep(n);});}
-  bindNav("to2",2);bindNav("back1",1);bindNav("to3",3);bindNav("back2",2);bindNav("to4",4);bindNav("back3",3);bindNav("toMode",0);
+  bindNav("back1",1);bindNav("to3",3);bindNav("back2",2);bindNav("to4",4);bindNav("back3",3);bindNav("toMode",0);
+  // 写真撮影へ進む前に同意を必須化
+  (function(){var b=$("to2");if(b)b.addEventListener("click",function(){
+    if(!$("consent").checked){$("consent").focus();alert("撮影に進むには、画像送信と娯楽目的の鑑定への同意（チェック）が必要です。");return;}
+    goStep(2);
+  });})();
   var appMode="pc";
   function applyMode(){var sp=(appMode==="sp");
     document.querySelectorAll(".cam").forEach(function(b){b.style.display=sp?"none":"";});
@@ -464,10 +464,9 @@
   (function(){var cb=$("clearPhotos");if(cb)cb.addEventListener("click",function(){if(!confirm("保存した撮影写真をすべて消去します。よろしいですか？"))return;for(var k in photos){photos[k]=null;var t=$("t-"+k);if(t)t.textContent="未撮影";}saveState();});})();
   $("shutter").addEventListener("click",shoot);
   $("camclose").addEventListener("click",closeCamera);
-  // APIキー・モデルの保存/復元
-  try{var sk=localStorage.getItem("gemini_key");if(sk)$("apikey").value=sk;var sm=localStorage.getItem("gemini_model");if(sm)$("model").value=sm;}catch(e){}
-  $("apikey").addEventListener("input",function(){try{localStorage.setItem("gemini_key",$("apikey").value);}catch(e){}});
-  $("model").addEventListener("input",function(){try{localStorage.setItem("gemini_model",$("model").value);}catch(e){}});
+  // アクセスコードの保存/復元（このブラウザ内のみ）
+  try{var sc=localStorage.getItem("kantei_access");if(sc)$("accesscode").value=sc;}catch(e){}
+  $("accesscode").addEventListener("input",function(){try{localStorage.setItem("kantei_access",$("accesscode").value.trim());}catch(e){}});
   // 入力（生年月日・姓名・写真）の自動保存／復元
   function saveState(){try{localStorage.setItem("kantei_state",JSON.stringify({yy:$("yy").value,mm:$("mm").value,dd:$("dd").value,sei:$("sei").value,mei:$("mei").value,photos:photos}));}catch(e){}}
   function restoreState(){try{var raw=localStorage.getItem("kantei_state");if(!raw)return;var st=JSON.parse(raw);
@@ -494,72 +493,160 @@
   function _sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
   function _isTransient(m){m=(m||"").toLowerCase();return /high demand|overload|unavailable|try again later|rate limit|resource has been exhausted|exhausted|\b429\b|\b503\b|\b500\b|internal error/.test(m);}
   function _isAuthErr(m){m=(m||"").toLowerCase();return /api key|api_key|permission.?denied|unauthorized|invalid.*(key|credential)|api key not valid/.test(m);}
-  function _genCfg(model){
-    var is25=/2\.5/.test(model);
-    var cfg={temperature:0.7,maxOutputTokens:is25?32768:8192};
-    if(is25)cfg.thinkingConfig={thinkingBudget:8192};
-    return cfg;
-  }
-  async function _post(contents,model,key){
-    var body={contents:contents,generationConfig:_genCfg(model)};
-    var url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key);
-    var r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    var d=await r.json().catch(function(){return {};});
-    if(!r.ok)throw new Error((d.error&&d.error.message)||("HTTP "+r.status));
-    var c=d.candidates&&d.candidates[0];
-    if(!c)throw new Error("応答が空でした"+(d.promptFeedback&&d.promptFeedback.blockReason?("／"+d.promptFeedback.blockReason):""));
-    var txt=((c.content&&c.content.parts)||[]).map(function(p){return p.text||"";}).join("");
-    return {text:txt,finish:(c.finishReason||"")};
-  }
-  async function callGeminiOnce(promptText,images,model,key){
-    var uparts=[{text:promptText}];
-    images.forEach(function(im){if(im.label)uparts.push({text:"【写真："+im.label+"】"});uparts.push({inline_data:{mime_type:im.mime,data:im.b64}});});
-    var contents=[{role:"user",parts:uparts}];
-    var res=await _post(contents,model,key);
-    if(!res.text)throw new Error("テキスト応答なし（"+res.finish+"）");
-    var out=res.text,tries=0;
-    while(res.finish==="MAX_TOKENS"&&tries<3){
-      tries++;
-      if($("status"))$("status").textContent="鑑定文が長いため続きを生成中…（"+tries+"/3）";
-      contents.push({role:"model",parts:[{text:res.text}]});
-      contents.push({role:"user",parts:[{text:"直前の鑑定文の続きを、挨拶や重複を入れず途中から、最後（⑧総合評価100点満点）まで書き切ってください。"}]});
-      res=await _post(contents,model,key);
-      out+=res.text;
-    }
-    return out;
-  }
+  // 鑑定リクエストは自前のプロキシ(/api/kantei)へ。Geminiキーはサーバ側に隠蔽。
+  // モデルのフォールバック・再試行・MAX_TOKENS続き生成はすべてサーバ側で実施。
   async function callGemini(promptText,images){
-    var key=$("apikey").value.trim();
-    var primary=$("model").value.trim()||"gemini-2.5-flash";
-    var models=[primary];
-    ["gemini-2.0-flash","gemini-flash-latest","gemini-2.5-flash-lite"].forEach(function(m){if(models.indexOf(m)<0)models.push(m);});
-    var lastErr;
-    for(var mi=0;mi<models.length;mi++){
-      var model=models[mi];
-      for(var attempt=1;attempt<=3;attempt++){
-        try{
-          if(mi>0||attempt>1)$("status").textContent="混雑のため再試行中…（モデル "+model+"／"+attempt+"回目）少々お待ちください";
-          return await callGeminiOnce(promptText,images,model,key);
-        }catch(e){
-          lastErr=e;var msg=(e&&e.message)||"";
-          if(_isAuthErr(msg))throw e;
-          if(_isTransient(msg)){await _sleep(attempt*2000);continue;}
-          break;
-        }
-      }
+    var code=$("accesscode").value.trim();
+    if(!code)throw new Error("アクセスコードを入力してください");
+    var payload={
+      code:code,
+      prompt:promptText,
+      images:images.map(function(im){return {mime:im.mime,b64:im.b64,label:im.label||""};})
+    };
+    var r=await fetch("/api/kantei",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    var d=await r.json().catch(function(){return {};});
+    if(!r.ok)throw new Error((d&&d.error)||("HTTP "+r.status));
+    if(!d.text)throw new Error("テキスト応答が空でした。少し時間をおいて再度お試しください。");
+    return d.text;
+  }
+  // エンジンが確定計算した六星占術の年運を、AI本文とは独立に固定表示する。
+  // これによりAI文章が万一ドリフトしても、表示される運命星・年運・大殺界は常に正しい。
+  function confirmedRokuseiHTML(){
+    if(!lastRoku||!lastRoku.ok||!lastRoku.si)return "";
+    var cy=(new Date()).getFullYear();
+    var rows="",daiYears=[];
+    for(var y=cy;y<=cy+6;y++){
+      var n=nenki(lastRoku.si,y,lastRoku.plus);
+      if(n.daisatsu)daiYears.push(y);
+      var col=n.daisatsu?"var(--shu)":(n.idx===4||n.idx===3?"var(--gold)":(n.idx===5?"var(--gold)":"var(--ai)"));
+      rows+='<tr><td style="padding:3px 12px 3px 0;color:var(--washiSub)">'+y+'年'+(y===cy?'（今年）':'')+'</td>'
+          +'<td style="padding:3px 0;color:'+col+';font-weight:'+(n.daisatsu?'700':'500')+'">'+n.name+(n.daisatsu?'　★大殺界':'')+'</td></tr>';
     }
-    throw lastErr||new Error("不明なエラー");
+    var dai=daiYears.length?('次の大殺界は <strong style="color:var(--shu)">'+daiYears[0]+'〜'+daiYears[daiYears.length-1]+'年</strong>（陰影→停止→減退）'):'今後7年内に大殺界はありません';
+    return '<div class="panel" style="margin-bottom:18px;border-color:var(--gold)">'
+      +'<div style="font-family:var(--mincho);color:var(--gold);font-size:14px;margin-bottom:8px">■ 六星占術（確定計算）</div>'
+      +'<div style="font-size:15px;color:var(--washi);margin-bottom:6px">運命星：<strong>'+lastRoku.label+'</strong></div>'
+      +'<table style="border-collapse:collapse;font-size:13px;line-height:1.5">'+rows+'</table>'
+      +'<div style="font-size:12px;color:var(--mute);margin-top:8px">'+dai+'。年運は生年月日から一意に確定する数値です。</div>'
+      +'</div>';
   }
   function renderResult(txt){
-    $("resultView").innerHTML=fmtResult(txt);
+    $("resultView").innerHTML=confirmedRokuseiHTML()+fmtResult(txt)+'<div style="margin-top:22px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--mute);line-height:1.7">※本鑑定はAIによる解析結果であり、娯楽を目的とするものです。医療・健康・法律・投資・結婚その他の重要な判断の根拠としないでください。記載内容について運営者は一切の責任を負いません。</div>';
     var nm=(($("sei").value||"")+($("mei").value||"")).trim();
     var y=$("yy").value,m=$("mm").value,d=$("dd").value;
     $("printHead").textContent="統合鑑定結果　"+(nm?nm+"　":"")+((y&&m&&d)?"（"+y+"."+m+"."+d+"）":"");
     $("resultSect").style.display="block";
     $("resultSect").scrollIntoView({behavior:"smooth",block:"start"});
   }
+  // ===== 年運ドリフト・ガード =====
+  // AI本文に紛れ込んだ「年×運気」「大殺界の年」の誤りを、確定計算と突き合わせて潰す。
+  var UNKI_NAMES="種子|緑生|立花|健弱|達成|乱気|再会|財成|安定|陰影|停止|減退";
+  function confirmedCycleInfo(){
+    var cy=(new Date()).getFullYear(),map={},dai=[],listArr=[];
+    for(var y=cy-8;y<=cy+12;y++){var n=nenki(lastRoku.si,y,lastRoku.plus);map[y]=n.name;if(n.daisatsu)dai.push(y);}
+    for(var y2=cy;y2<=cy+6;y2++){var n2=nenki(lastRoku.si,y2,lastRoku.plus);listArr.push(y2+"年＝"+n2.name+(n2.daisatsu?"（大殺界）":""));}
+    return {map:map,daiSet:dai,label:lastRoku.label,list:listArr.join(" / "),cy:cy};
+  }
+  function detectYearErrors(txt,info){
+    var re=new RegExp("(20\\d{2})\\s*年[^。\\n0-9]{0,8}?("+UNKI_NAMES+")","g"),m,errs=[],seen={};
+    while((m=re.exec(txt))){
+      var yr=parseInt(m[1],10),found=m[2],correct=info.map[yr];
+      if(correct&&correct!==found){var k=yr+":"+found;if(!seen[k]){seen[k]=1;errs.push({year:yr,found:found,correct:correct});}}
+    }
+    // 大殺界の年の誤り（範囲外の年を大殺界と書いている等）
+    var re2=new RegExp("(20\\d{2})\\s*年[^。\\n]{0,12}?大殺界|大殺界[^。\\n]{0,14}?(20\\d{2})\\s*年","g"),m2;
+    while((m2=re2.exec(txt))){
+      var yr2=parseInt(m2[1]||m2[2],10);
+      if(yr2&&info.map[yr2]!=null&&info.daiSet.indexOf(yr2)<0){var k2="dai:"+yr2;if(!seen[k2]){seen[k2]=1;errs.push({year:yr2,found:"大殺界",correct:info.map[yr2]+"（大殺界ではない）"});}}
+    }
+    return errs;
+  }
+  function buildCorrectionPrompt(txt,info,errs){
+    var L=["以下の鑑定本文には、六星占術の年運表記に誤りがあります。","","【確定年運＝唯一の正解】運命星 "+info.label,info.list,"【大殺界の年】"+(info.daiSet.length?info.daiSet.join("・")+"年（陰影・停止・減退）":"直近に該当年なし"),"","【検出された誤り（必ず確定値に直す）】"];
+    errs.forEach(function(e){L.push("・"+e.year+"年：『"+e.found+"』は誤り → 正しくは『"+e.correct+"』");});
+    L.push("","上記の確定値に厳密に従い、年号・運気名・大殺界の年だけを正しく直した本文の【完全版】を出力してください。年運に無関係な文章・構成・順序・分量・口調は一切変えないこと。前置きや謝罪や説明は書かず、修正後の本文だけを返すこと。","","--- 本文 ---","",txt);
+    return L.join("\n");
+  }
+  function hardFixAdjacent(txt,info){
+    var re=new RegExp("(20\\d{2})\\s*年[^。\\n0-9]{0,8}?("+UNKI_NAMES+")","g"),m,repl=[];
+    while((m=re.exec(txt))){
+      var yr=parseInt(m[1],10),found=m[2],correct=info.map[yr];
+      if(correct&&correct!==found){var rel=m[0].lastIndexOf(found),abs=m.index+rel;repl.push({s:abs,e:abs+found.length,c:correct});}
+    }
+    for(var i=repl.length-1;i>=0;i--)txt=txt.slice(0,repl[i].s)+repl[i].c+txt.slice(repl[i].e);
+    return txt;
+  }
+  // 大殺界の「連続3年の窓」を確定計算から求める
+  function daisatsuWindows(info){
+    var ws=[],start=null,prev=null;
+    for(var y=info.cy-14;y<=info.cy+22;y++){
+      var dai=nenki(lastRoku.si,y,lastRoku.plus).daisatsu;
+      if(dai){if(start===null)start=y;prev=y;}
+      else{if(start!==null){ws.push([start,prev]);start=null;}}
+    }
+    if(start!==null)ws.push([start,prev]);
+    return ws;
+  }
+  function pickDaiWindow(ws,info,ctx,yvals){
+    var avg=yvals.reduce(function(a,b){return a+b;},0)/yvals.length;
+    var fut=/から始ま|次の|今後|これから|来る|控え|突入|に入|入りま|始まり|を迎え|向け/.test(ctx);
+    var pst=/でし|だっ|過去|直近|終わ|抜け|明け|越え|済ん|前回|かつて|経て/.test(ctx);
+    var dir=(pst&&!fut)?"past":(fut&&!pst)?"future":((avg<info.cy)?"past":"future");
+    var cand=null,i;
+    if(dir==="past"){for(i=ws.length-1;i>=0;i--){if(ws[i][1]<info.cy){cand=ws[i];break;}}}
+    else{for(i=0;i<ws.length;i++){if(ws[i][1]>=info.cy){cand=ws[i];break;}}}
+    return cand;
+  }
+  // 運気名を伴わない「大殺界＋年」の年範囲を、正しい窓の年へ置換
+  function hardFixDaisatsuRanges(txt,info){
+    var ws=daisatsuWindows(info);if(!ws.length)return txt;
+    var repl=[],re=/大殺界/g,m;
+    while((m=re.exec(txt))){
+      // 否定文（大殺界ではない 等）はスキップ
+      if(/大殺界[^。\n]{0,3}(では?な|では無|じゃな|無い|ない|該当しません|ありません)/.test(txt.slice(m.index,m.index+16)))continue;
+      var lo=Math.max(0,m.index-20),hi=Math.min(txt.length,m.index+26);
+      var seg=txt.slice(lo,hi),yre=/20\d{2}/g,ym,years=[];
+      while((ym=yre.exec(seg))){
+        var abs=lo+ym.index,a=Math.min(abs,m.index),b=Math.max(abs,m.index);
+        if(/[。\n]/.test(txt.slice(a,b)))continue;            // 文をまたぐ年は無視
+        years.push({y:parseInt(ym[0],10),s:abs,e:abs+4});
+      }
+      if(!years.length)continue;
+      var yvals=years.map(function(o){return o.y;});
+      if(ws.some(function(w){return yvals.every(function(v){return v>=w[0]&&v<=w[1];});}))continue; // 既に正しい窓
+      var win=pickDaiWindow(ws,info,txt.slice(lo,hi),yvals);if(!win)continue;
+      var winYears=[];for(var wy=win[0];wy<=win[1];wy++)winYears.push(wy);
+      var sorted=years.slice().sort(function(p,q){return p.y-q.y;});
+      sorted.forEach(function(o,i){
+        var target=(sorted.length===1)?winYears[0]:(i===0?winYears[0]:(i===sorted.length-1?winYears[winYears.length-1]:winYears[Math.min(i,winYears.length-1)]));
+        if(o.y!==target)repl.push({s:o.s,e:o.e,c:String(target)});
+      });
+    }
+    repl.sort(function(a,b){return a.s-b.s;});
+    var dd=[];for(var k=0;k<repl.length;k++){if(!dd.length||repl[k].s>=dd[dd.length-1].e)dd.push(repl[k]);}
+    for(var z=dd.length-1;z>=0;z--)txt=txt.slice(0,dd[z].s)+dd[z].c+txt.slice(dd[z].e);
+    return txt;
+  }
+  async function ensureNoDrift(txt){
+    if(!lastRoku||!lastRoku.ok||!lastRoku.si)return txt;       // 六星なし(姓名のみ)は対象外
+    var info=confirmedCycleInfo();
+    for(var pass=0;pass<2;pass++){
+      var errs=detectYearErrors(txt,info);
+      if(!errs.length)return txt;                              // 誤りなし＝そのまま
+      $("status").textContent="鑑定文の年運を確定値に補正中…（"+(pass+1)+"/2）";
+      try{var fixed=await callGemini(buildCorrectionPrompt(txt,info,errs),[]);if(fixed&&fixed.length>200)txt=fixed;else break;}
+      catch(e){break;}
+    }
+    txt=hardFixAdjacent(txt,info);          // 年＋運気名の食い違いを置換
+    return hardFixDaisatsuRanges(txt,info); // 大殺界の年範囲を置換
+  }
+
   async function doKantei(){
-    if(!$("apikey").value.trim()){$("status").textContent="Gemini APIキーを入力してください（下のキー欄）。";return;}
+    if(!$("accesscode").value.trim()){$("status").textContent="アクセスコードを入力してください（下の欄）。";return;}
     if((!lastRoku||!lastRoku.ok)&&(!lastSeimei||!lastSeimei.ok)){$("status").textContent="生年月日か姓名のどちらかを入力してください。";return;}
     $("status").textContent="鑑定中…（写真の解析に少し時間がかかります）";
     $("kantei").disabled=true;
@@ -567,6 +654,7 @@
       var LB={left:"①左手全体",palmL:"③手のひら(左)",venusL:"④金星丘(左)",moonL:"⑤月丘(左)",right:"②右手全体",palmR:"③手のひら(右)",venusR:"④金星丘(右)",moonR:"⑤月丘(右)",face:"⑥正面顔"};
       var imgs=[];["left","palmL","venusL","moonL","right","palmR","venusR","moonR","face"].forEach(function(id){if(photos[id]){var p=splitDataUrl(photos[id]);if(p){p.label=LB[id];imgs.push(p);}}});
       var txt=await callGemini(buildMsg(),imgs);
+      txt=await ensureNoDrift(txt);
       renderResult(txt);
       $("status").textContent="鑑定完了。";
     }catch(e){
@@ -574,7 +662,7 @@
       if(_isTransient(m)){
         $("status").textContent="Gemini側が混雑中で取得できませんでした。1〜2分おいて再度「鑑定する」を押すか、モデル欄を gemini-2.0-flash に変えてお試しください。";
       }else if(_isAuthErr(m)){
-        $("status").textContent="APIキーが無効か権限不足の可能性があります。キーをご確認ください（"+m+"）。";
+        $("status").textContent="アクセスコードが無効か、現在ご利用いただけません。コードをご確認のうえ、改善しない場合は運営までご連絡ください。";
       }else{
         $("status").textContent="鑑定に失敗："+m+"（キー・モデル名・通信をご確認ください）";
       }
