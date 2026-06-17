@@ -85,13 +85,25 @@
     body{background:#fff;color:#111}
     header,.sect,.btns,.note,.foot,#cam,.copied,.panel,#kantei,#status,.step,.steph,.navbtns{display:none!important}
     #resultSect{display:block!important;margin:0;padding:0}
-    #pdf{display:none!important}
+    #pdf,#pdfRes,#pdfSum,#sumBtn{display:none!important}
     #printHead{color:#111!important;border-bottom:2px solid #C23B2B;padding-bottom:8px;margin-bottom:14px;font-size:20px}
     #resultView{color:#111}
     #resultView .h{color:#111;border-color:#C23B2B}
     #resultView .brk{color:#9a7d10}
     #resultView strong{color:#000}
     #resultView .p,#resultView .li{color:#111}
+    /* 既定（モード無し）と「鑑定結果だけ」印刷：要点ボックスは出さない */
+    #summaryWrap{display:none!important}
+    body.pm-res #summaryWrap{display:none!important}
+    /* 「要点だけ」印刷：鑑定本文を隠し、要点ボックスだけ白地で出す */
+    body.pm-sum #resultView{display:none!important}
+    body.pm-sum #summaryWrap{display:block!important}
+    body.pm-sum #summaryPanel{display:block!important;background:#fff!important;border:1.5px solid #C23B2B!important;color:#111;margin:0}
+    body.pm-sum #summaryTitle{color:#C23B2B!important}
+    body.pm-sum #summaryView{color:#111!important}
+    body.pm-sum #summaryView .p,body.pm-sum #summaryView .li{color:#111!important}
+    body.pm-sum #summaryView strong{color:#000!important}
+    body.pm-sum #summaryView .brk{color:#9a7d10!important}
   }
 </style>
 </head>
@@ -205,23 +217,26 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)">
       <div style="font-family:var(--mincho);font-size:18px;color:var(--washi)" id="printHead">鑑定結果</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="act primary" id="sumBtn" style="flex:0 0 auto;min-width:auto;padding:10px 18px;letter-spacing:1px">✦ 要約する</button>
-        <button class="act gold" id="pdf" style="flex:0 0 auto;min-width:auto;padding:10px 20px;letter-spacing:1px">印刷 / PDFで保存</button>
+        <button class="act primary" id="sumBtn" style="flex:0 0 auto;min-width:auto;padding:10px 18px;letter-spacing:1px">✦ 要点</button>
+        <button class="act gold" id="pdfRes" style="flex:0 0 auto;min-width:auto;padding:10px 20px;letter-spacing:1px">鑑定結果を印刷</button>
       </div>
     </div>
     <div id="sumStatus" class="copied" style="margin:0 0 10px"></div>
     <div id="summaryWrap" style="display:none;margin-bottom:18px">
-      <div class="panel" style="border-color:var(--ai)">
-        <div style="font-family:var(--mincho);color:var(--ai);font-size:15px;margin-bottom:10px">✦ 要点まとめ（要約）</div>
+      <div class="panel" id="summaryPanel" style="border-color:var(--ai)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <div id="summaryTitle" style="font-family:var(--mincho);color:var(--ai);font-size:15px">✦ 要点まとめ</div>
+          <button class="act gold" id="pdfSum" style="flex:0 0 auto;min-width:auto;padding:7px 14px;letter-spacing:1px;font-size:12px">要点を印刷</button>
+        </div>
         <div id="summaryView" style="font-size:14px;line-height:1.9"></div>
-        <div style="font-size:11px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">※下の詳細な鑑定本文をAIが要約したものです。詳しくは本文をご覧ください。</div>
+        <div style="font-size:11px;color:var(--mute);margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">※鑑定本文の要点をまとめたものです。詳しくは本文をご覧ください。</div>
       </div>
     </div>
     <div id="resultView"></div>
   </div>
 
   <div class="foot">
-    使い方：①生年月日（ドロップダウン）と姓名を入れる→②手・顔を撮影（枠に合わせる）→③アクセスコードを入力（初回のみ）→④「鑑定する」を押すだけ。結果がこの下に表示され、上の「印刷 / PDFで保存」でPDFにできます。<br>
+    使い方：①生年月日（ドロップダウン）と姓名を入れる→②手・顔を撮影（枠に合わせる）→③アクセスコードを入力（初回のみ）→④「鑑定する」を押すだけ。結果がこの下に表示されます。要点だけ見たいときは「✦ 要点」、PDFにするときは「鑑定結果を印刷」、要点だけのPDFは要点ボックスの「要点を印刷」を使います。<br>
     ※六星占術・姓名判断はこのツールが確定計算します（運命数表1950-2030と一致を検証済み／対応1873〜2100年）。画数は流派差があるため編集可能です。<br>
     ※カメラ許可は最初の1回だけ求められます（「サイトへのアクセス時は許可」を選ぶと次回以降も出にくくなります）。起動しない場合は「ファイル」ボタンから選べます。
   </div>
@@ -549,25 +564,25 @@
   function renderResult(txt){
     lastResultText=txt;
     $("resultView").innerHTML=confirmedRokuseiHTML()+fmtResult(txt)+'<div style="margin-top:22px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--mute);line-height:1.7">※本鑑定はAIによる解析結果であり、娯楽を目的とするものです。医療・健康・法律・投資・結婚その他の重要な判断の根拠としないでください。記載内容について運営者は一切の責任を負いません。</div>';
-    // 新しい鑑定が出たら、前回の要約はリセット
+    // 新しい鑑定が出たら、前回の要点はリセット
     $("summaryWrap").style.display="none";$("summaryView").innerHTML="";$("sumStatus").textContent="";
-    var sb=$("sumBtn");if(sb){sb.textContent="✦ 要約する";sb.disabled=false;}
+    var sb=$("sumBtn");if(sb){sb.textContent="✦ 要点";sb.disabled=false;}
     var nm=(($("sei").value||"")+($("mei").value||"")).trim();
     var y=$("yy").value,m=$("mm").value,d=$("dd").value;
     $("printHead").textContent="統合鑑定結果　"+(nm?nm+"　":"")+((y&&m&&d)?"（"+y+"."+m+"."+d+"）":"");
     $("resultSect").style.display="block";
     $("resultSect").scrollIntoView({behavior:"smooth",block:"start"});
   }
-  // ===== 要約 =====
-  // 鑑定本文(lastResultText)をAIに要約させ、結果上部のボックスに表示する。
-  // 六星占術の年運は確定計算で機械置換し、要約でも年がズレないようにする。
+  // ===== 要点 =====
+  // 鑑定本文(lastResultText)をAIに要点化させ、結果上部のボックスに表示する。
+  // 六星占術の年運は確定計算で機械置換し、要点でも年がズレないようにする。
   async function summarize(){
     if(!lastResultText){$("sumStatus").textContent="先に鑑定を実行してください。";return;}
     var btn=$("sumBtn");btn.disabled=true;
-    $("sumStatus").textContent="要約を作成中…（10〜30秒ほどお待ちください）";
+    $("sumStatus").textContent="要点を作成中…（10〜30秒ほどお待ちください）";
     try{
       var prompt=[
-        "以下は、ある人の統合鑑定結果の全文です。本人がひと目で要点をつかめるよう、やさしい日本語で要約してください。",
+        "以下は、ある人の統合鑑定結果の全文です。本人がひと目で要点をつかめるよう、やさしい日本語で要点をまとめてください。",
         "",
         "【条件】",
         "・全体で400〜600字程度。",
@@ -577,7 +592,7 @@
         "　■気をつけたい点",
         "　■開運のヒント（具体的な行動を2〜3個）",
         "・六星占術の年号・運気名・大殺界の年は、本文に書かれているとおり正確に引用すること（勝手に変えない）。",
-        "・前置きや「了解しました」などは書かず、要約本文だけを返す。",
+        "・前置きや「了解しました」などは書かず、要点本文だけを返す。",
         "",
         "--- 鑑定結果 全文 ---",
         "",
@@ -588,13 +603,13 @@
       $("summaryView").innerHTML=fmtResult(sum);
       $("summaryWrap").style.display="block";
       $("sumStatus").textContent="";
-      btn.textContent="✦ 要約をやり直す";
+      btn.textContent="✦ 要点をやり直す";
       $("summaryWrap").scrollIntoView({behavior:"smooth",block:"start"});
     }catch(e){
       var m=(e&&e.message)||String(e);
-      if(_isTransient(m)){$("sumStatus").textContent="Gemini側が混雑中で要約を取得できませんでした。少し時間をおいて再度「要約する」を押してください。";}
+      if(_isTransient(m)){$("sumStatus").textContent="Gemini側が混雑中で要点を取得できませんでした。少し時間をおいて再度「要点」を押してください。";}
       else if(_isAuthErr(m)){$("sumStatus").textContent="アクセスコードが無効か、現在ご利用いただけません。";}
-      else{$("sumStatus").textContent="要約に失敗："+m;}
+      else{$("sumStatus").textContent="要点の作成に失敗："+m;}
     }finally{btn.disabled=false;}
   }
   // ===== 年運ドリフト・ガード =====
@@ -725,7 +740,15 @@
   }
   $("kantei").addEventListener("click",doKantei);
   $("sumBtn").addEventListener("click",summarize);
-  $("pdf").addEventListener("click",function(){setTimeout(function(){window.print();},100);});
+  // 印刷モード切替：pm-sum=要点だけ / pm-res=鑑定結果だけ（@media print 側で出し分け）
+  function doPrint(mode){
+    document.body.classList.remove("pm-sum","pm-res");
+    document.body.classList.add(mode);
+    window.print();
+  }
+  window.addEventListener("afterprint",function(){document.body.classList.remove("pm-sum","pm-res");});
+  $("pdfRes").addEventListener("click",function(){doPrint("pm-res");});
+  $("pdfSum").addEventListener("click",function(){doPrint("pm-sum");});
 
   fillDOB();buildEditor();recompute();
 })();
