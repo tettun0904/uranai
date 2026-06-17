@@ -9,8 +9,8 @@
 
 const FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
 const MAX_IMAGES = 9;
-const MAX_CONTINUE = 3;   // MAX_TOKENSで切れた時の続き生成回数
-const MAX_ATTEMPTS = 3;   // 一時エラー時の同一モデル再試行回数
+const MAX_CONTINUE = 3;
+const MAX_ATTEMPTS = 3;
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -82,3 +82,69 @@ async function callOnce(promptText, images, model, key) {
 async function callGemini(promptText, images, primaryModel, key) {
   const models = [primaryModel];
   for (const m of FALLBACK_MODELS) if (!models.includes(m)) models.push(m);
+  let lastErr;
+  for (const model of models) {
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        return await callOnce(promptText, images, model, key);
+      } catch (e) {
+        lastErr = e;
+        const msg = (e && e.message) || "";
+        if (isAuthErr(msg)) throw e;
+        if (isTransient(msg)) { await sleep(attempt * 1500); continue; }
+        break;
+      }
+    }
+  }
+  throw lastErr || new Error("不明なエラー");
+}
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
+  if (!env.GEMINI_API_KEY) return json({ error: "サーバ未設定です（運営にご連絡ください）。" }, 500);
+  const validCodes = String(env.ACCESS_CODES || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (validCodes.length === 0) return json({ error: "現在ご利用いただけません（運営にご連絡ください）。" }, 503);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "リクエスト形式が不正です。" }, 400);
+  }
+
+  const code = String(body.code || "").trim();
+  if (!code) return json({ error: "アクセスコードを入力してください。" }, 401);
+  if (!validCodes.includes(code)) return json({ error: "アクセスコードが無効です。" }, 403);
+
+  const prompt = String(body.prompt || "");
+  if (!prompt) return json({ error: "鑑定内容が空です。" }, 400);
+
+  let images = Array.isArray(body.images) ? body.images : [];
+  images = images
+    .filter((im) => im && im.b64 && im.mime)
+    .slice(0, MAX_IMAGES)
+    .map((im) => ({ mime: String(im.mime), b64: String(im.b64), label: String(im.label || "") }));
+
+  const primaryModel = String(env.GEMINI_MODEL || "gemini-2.5-flash");
+
+  try {
+    const text = await callGemini(prompt, images, primaryModel, env.GEMINI_API_KEY);
+    if (!text) return json({ error: "テキスト応答が空でした。少し時間をおいて再度お試しください。" }, 502);
+    return json({ text });
+  } catch (e) {
+    const msg = (e && e.message) || String(e);
+    if (isAuthErr(msg)) return json({ error: "現在ご利用いただけません（運営側設定）。" }, 503);
+    if (isTransient(msg))
+      return json({ error: "ただいま混雑しています。1〜2分おいて再度お試しください。" }, 503);
+    return json({ error: "鑑定に失敗しました：" + msg }, 502);
+  }
+}
+
+export async function onRequest(context) {
+  if (context.request.method === "POST") return onRequestPost(context);
+  return json({ error: "Method Not Allowed" }, 405);
+}
