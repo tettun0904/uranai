@@ -92,6 +92,10 @@
     #resultView .brk{color:#9a7d10}
     #resultView strong{color:#000}
     #resultView .p,#resultView .li{color:#111}
+    /* 各単元（セクション）はページ途中で割らない＝中途半端な改ページを防ぐ */
+    #resultView .sec{break-inside:avoid;page-break-inside:avoid;margin-bottom:6px}
+    #resultView .sec .h{break-after:avoid;page-break-after:avoid;margin-top:0}
+    #resultView .p,#resultView .li{orphans:3;widows:3}
     /* 既定（モード無し）と「鑑定結果だけ」印刷：要点ボックスは出さない */
     #summaryWrap{display:none!important}
     body.pm-res #summaryWrap{display:none!important}
@@ -505,15 +509,26 @@
 
   function fmtResult(s){
     s=s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    s=s.replace(/【([^】]+)】/g,'<span class="brk">【$1】</span>');
-    s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
-    return s.split("\n").map(function(ln){
+    function inline(t){
+      t=t.replace(/【([^】]+)】/g,'<span class="brk">【$1】</span>');
+      t=t.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+      return t;
+    }
+    var out=[],sec=[];
+    function flush(){if(sec.length){out.push('<div class="sec">'+sec.join("")+'</div>');sec=[];}}
+    s.split("\n").forEach(function(ln){
       var t=ln.trim();
-      if(!t)return '<div style="height:8px"></div>';
-      if(/^#{1,6}\s/.test(t))return '<div class="h">'+t.replace(/^#{1,6}\s/,"")+'</div>';
-      if(/^[・\-*●]\s?/.test(t))return '<div class="li">・'+t.replace(/^[・\-*●]\s?/,"")+'</div>';
-      return '<div class="p">'+t+'</div>';
-    }).join("");
+      if(!t){sec.push('<div style="height:8px"></div>');return;}
+      var hd=null;
+      if(/^#{1,6}\s/.test(t))hd=t.replace(/^#{1,6}\s/,"");
+      else if(/^[■◆●▼]\s?/.test(t))hd=t.replace(/^[■◆●▼]\s?/,"");
+      else if(/^\*\*[^*]+\*\*\s*[:：]?\s*$/.test(t))hd=t.replace(/\*\*/g,"").replace(/[:：]\s*$/,"");
+      if(hd!==null){flush();sec.push('<div class="h">'+inline(hd)+'</div>');return;}
+      if(/^[・\-●]\s?/.test(t)){sec.push('<div class="li">・'+inline(t.replace(/^[・\-●]\s?/,""))+'</div>');return;}
+      sec.push('<div class="p">'+inline(t)+'</div>');
+    });
+    flush();
+    return out.join("");
   }
   function splitDataUrl(u){var m=u.match(/^data:([^;]+);base64,(.*)$/);return m?{mime:m[1],b64:m[2]}:null;}
   function _sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
