@@ -165,7 +165,7 @@
       <input type="checkbox" id="consent" style="width:18px;height:18px;margin-top:2px;accent-color:var(--shu);flex:0 0 auto">
       <label for="consent" style="cursor:pointer;font-size:13px;color:var(--washiSub)">手相・人相の鑑定のため、撮影した<strong style="color:var(--washi)">顔・手の画像</strong>を、AI解析の目的で運営のサーバ経由により<strong style="color:var(--washi)">GoogleのGemini API</strong>へ送信することに同意します（送信データは学習には使用されません）。本鑑定は<strong style="color:var(--washi)">娯楽を目的</strong>とするもので、医療・法律・投資等の専門的助言ではありません。</label>
     </div>
-    <div class="navbtns"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="act ghost nav" id="toMode" style="min-width:auto;font-size:12px;padding:8px 12px">← 機材選択</button><button class="act ghost nav" id="clearPhotos" style="min-width:auto;font-size:12px;padding:8px 12px">保存写真を消去</button></div><button class="act primary nav" id="to2">写真撮影に進む →</button></div>
+    <div class="navbtns"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="act ghost nav" id="toMode" style="min-width:auto;font-size:12px;padding:8px 12px">← 機材選択</button><button class="act ghost nav" id="clearPhotos" style="min-width:auto;font-size:12px;padding:8px 12px">写真を消去</button></div><button class="act primary nav" id="to2">写真撮影に進む →</button></div>
   </div>
 
   <!-- STEP 2：左手 -->
@@ -491,20 +491,18 @@
   function setMode(m){appMode=m;try{localStorage.setItem("kantei_mode",m);}catch(e){}applyMode();goStep(1);}
   (function(){var pc=$("modePC"),sp=$("modeSP");if(pc)pc.addEventListener("click",function(){setMode("pc");});if(sp)sp.addEventListener("click",function(){setMode("sp");});
     try{var sm=localStorage.getItem("kantei_mode");if(sm){appMode=sm;applyMode();}}catch(e){}})();
-  (function(){var cb=$("clearPhotos");if(cb)cb.addEventListener("click",function(){if(!confirm("保存した撮影写真をすべて消去します。よろしいですか？"))return;for(var k in photos){photos[k]=null;var t=$("t-"+k);if(t)t.textContent="未撮影";}saveState();});})();
+  (function(){var cb=$("clearPhotos");if(cb)cb.addEventListener("click",function(){if(!confirm("撮影した写真をすべて消去します。よろしいですか？"))return;for(var k in photos){photos[k]=null;var t=$("t-"+k);if(t)t.textContent="未撮影";}saveState();});})();
   $("shutter").addEventListener("click",shoot);
   $("camclose").addEventListener("click",closeCamera);
   // アクセスコードの保存/復元（このブラウザ内のみ）
   try{var sc=localStorage.getItem("kantei_access");if(sc)$("accesscode").value=sc;}catch(e){}
   $("accesscode").addEventListener("input",function(){try{localStorage.setItem("kantei_access",$("accesscode").value.trim());}catch(e){}});
-  // 入力（生年月日・姓名・写真）の自動保存／復元
-  function saveState(){try{localStorage.setItem("kantei_state",JSON.stringify({yy:$("yy").value,mm:$("mm").value,dd:$("dd").value,sei:$("sei").value,mei:$("mei").value,photos:photos}));}catch(e){}}
-  function restoreState(){try{var raw=localStorage.getItem("kantei_state");if(!raw)return;var st=JSON.parse(raw);
-    if(st.yy)$("yy").value=st.yy;if(st.mm)$("mm").value=st.mm;if(typeof updateDays==="function")updateDays();if(st.dd)$("dd").value=st.dd;
-    if(st.sei)$("sei").value=st.sei;if(st.mei)$("mei").value=st.mei;
-    if(st.photos){for(var k in photos){if(st.photos[k]){photos[k]=st.photos[k];var t=$("t-"+k);if(t)t.innerHTML='<img src="'+st.photos[k]+'">';}}}
-    if(typeof buildEditor==="function")buildEditor();if(typeof recompute==="function")recompute();
-  }catch(e){}}
+  // 【プライバシー】生年月日・姓名・写真などの個人情報は、この端末に保存しない。
+  //  セッション中はメモリ上にのみ保持し、ページを再読み込みすると消える（次の人は白紙から始まる）。
+  //  共有端末でも前の人の情報（特に顔写真）が残らないようにするための仕様。
+  function saveState(){try{localStorage.removeItem("kantei_state");}catch(e){}}
+  // 過去に保存された個人情報があれば、起動時に消去する（クリーンアップ）。
+  function restoreState(){try{localStorage.removeItem("kantei_state");}catch(e){}}
   restoreState();
 
   function fmtResult(s){
