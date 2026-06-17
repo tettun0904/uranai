@@ -219,7 +219,7 @@
 
 <div class="cammodal" id="cam">
   <div class="camtitle" id="camTitle">撮影</div>
-  <div class="camver" id="camver">ガイド版 G27（現在年を正しく）</div>
+  <div class="camver" id="camver">ガイド版 G28（年運を確定計算）</div>
   <div class="camstage">
     <video id="video" autoplay playsinline muted></video>
     <div class="guide" id="guide"></div>
@@ -239,9 +239,11 @@
   var ETO=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
   var STARS=["","土星人","金星人","火星人","天王星人","木星人","水星人"];
   var REIGOU={"土星人+":"戌","土星人−":"亥","金星人+":"申","金星人−":"酉","火星人+":"午","火星人−":"未","天王星人+":"辰","天王星人−":"巳","木星人+":"寅","木星人−":"卯","水星人+":"子","水星人−":"丑"};
+  var NENKI=["種子","緑生","立花","健弱","達成","乱気","再会","財成","安定","陰影","停止","減退"];
+  function nenki(si,year,plus){var sIdx=si-1;var seed=(((1-2*sIdx)%12)+12)%12;var yb=(((year-4)%12)+12)%12;var idx=(((yb-seed)%12)+12)%12;if(plus)idx=(idx+1)%12;return {name:NENKI[idx],idx:idx,daisatsu:(idx>=9&&idx<=11)};}
   function jdn(y,mo,d){var a=Math.floor((14-mo)/12);var yy=y+4800-a;var mm=mo+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
   function dayKanshi(y,mo,d){return ((jdn(y,mo,d)+49)%60)+1;}
-  function calcRokusei(y,mo,d){if(!y||!mo||!d)return{ok:false,reason:"生年月日を選択してください。"};if(y<1873||y>2100)return{ok:false,reason:"対応範囲(1873〜2100年)外です。"};var hoshi=dayKanshi(y,mo,d);var unmei=hoshi-d+1;while(unmei<1)unmei+=60;while(unmei>60)unmei-=60;var disp=unmei-1+d;var si=Math.ceil(hoshi/10);var star=STARS[si];var ei=(((y-4)%12)+12)%12;var eto=ETO[ei];var sign=ei%2===0?"+":"−";var rei=REIGOU[star+sign]===eto;var steps=["①運命数（"+y+"年×"+mo+"月）="+unmei,"②星数="+unmei+"−1+日"+d+"="+disp+(disp>60?" →60を引いて "+hoshi:"="+hoshi),"③星数"+hoshi+"（"+((si-1)*10+1)+"〜"+si*10+"帯）→ "+star,"④"+y+"年="+eto+"年 → "+(sign==="+"?"プラス":"マイナス"),"⑤霊合星人："+(rei?"該当":"非該当")];return{ok:true,label:star+sign+(rei?"（霊合星人）":""),steps:steps};}
+  function calcRokusei(y,mo,d){if(!y||!mo||!d)return{ok:false,reason:"生年月日を選択してください。"};if(y<1873||y>2100)return{ok:false,reason:"対応範囲(1873〜2100年)外です。"};var hoshi=dayKanshi(y,mo,d);var unmei=hoshi-d+1;while(unmei<1)unmei+=60;while(unmei>60)unmei-=60;var disp=unmei-1+d;var si=Math.ceil(hoshi/10);var star=STARS[si];var ei=(((y-4)%12)+12)%12;var eto=ETO[ei];var sign=ei%2===0?"+":"−";var rei=REIGOU[star+sign]===eto;var steps=["①運命数（"+y+"年×"+mo+"月）="+unmei,"②星数="+unmei+"−1+日"+d+"="+disp+(disp>60?" →60を引いて "+hoshi:"="+hoshi),"③星数"+hoshi+"（"+((si-1)*10+1)+"〜"+si*10+"帯）→ "+star,"④"+y+"年="+eto+"年 → "+(sign==="+"?"プラス":"マイナス"),"⑤霊合星人："+(rei?"該当":"非該当")];var _ny=(new Date()).getFullYear();var _plus=(sign==="+");var _seq=[];for(var _k=0;_k<5;_k++){var _z=nenki(si,_ny+_k,_plus);_seq.push((_ny+_k)+"="+_z.name+(_z.daisatsu?"[大殺界]":""));}steps.push("⑥年運（確定）："+_seq.join("　"));return{ok:true,label:star+sign+(rei?"（霊合星人）":""),steps:steps,si:si,plus:_plus};}
 
   var HIRA={"あ":3,"い":2,"う":2,"え":2,"お":3,"か":3,"き":4,"く":1,"け":3,"こ":2,"さ":3,"し":1,"す":2,"せ":3,"そ":2,"た":4,"ち":3,"つ":1,"て":1,"と":2,"な":5,"に":3,"ぬ":2,"ね":4,"の":1,"は":3,"ひ":2,"ふ":4,"へ":1,"ほ":4,"ま":4,"み":3,"む":3,"め":2,"も":3,"や":3,"ゆ":2,"よ":3,"ら":2,"り":2,"る":2,"れ":3,"ろ":2,"わ":3,"を":3,"ん":2,"ゃ":3,"ゅ":2,"ょ":3,"っ":1,"ー":1};
   var KATA={"ア":2,"イ":2,"ウ":3,"エ":3,"オ":3,"カ":2,"キ":3,"ク":2,"ケ":3,"コ":2,"サ":3,"シ":3,"ス":2,"セ":2,"ソ":2,"タ":3,"チ":3,"ツ":3,"テ":3,"ト":2,"ナ":2,"ニ":2,"ヌ":2,"ネ":4,"ノ":1,"ハ":2,"ヒ":2,"フ":1,"ヘ":1,"ホ":4,"マ":2,"ミ":3,"ム":2,"メ":2,"モ":3,"ヤ":2,"ユ":2,"ヨ":3,"ラ":2,"リ":2,"ル":2,"レ":1,"ロ":3,"ワ":2,"ヲ":3,"ン":2,"ャ":2,"ュ":2,"ョ":3,"ッ":3,"ー":1};
@@ -399,7 +401,17 @@
     var _now=new Date(),_cy=_now.getFullYear();
     L.push("■本日の日付："+_cy+"年"+(_now.getMonth()+1)+"月"+_now.getDate()+"日（これが現在の基準日）。『今後5年の流れ』は必ず "+_cy+"年（今年＝現在）から "+(_cy+4)+"年までを1年ごとに分析すること。"+(_cy-1)+"年以前を『現在』として扱わない。年号を絶対に間違えないこと。");
     L.push("■生年月日："+((y&&m&&d)?y+"年"+m+"月"+d+"日":"未入力"));
-    if(lastRoku&&lastRoku.ok){L.push("■六星占術（確定）：運命星 "+lastRoku.label);lastRoku.steps.forEach(function(s){L.push("  "+s);});}
+    if(lastRoku&&lastRoku.ok){L.push("■六星占術（確定）：運命星 "+lastRoku.label);lastRoku.steps.forEach(function(s){L.push("  "+s);});
+      if(lastRoku.si){var _yr=[],_dai=[];for(var _y2=_cy;_y2<=_cy+6;_y2++){var _n2=nenki(lastRoku.si,_y2,lastRoku.plus);_yr.push(_y2+"年＝"+_n2.name+(_n2.daisatsu?"（大殺界）":""));if(_n2.daisatsu)_dai.push(_y2);}
+        var _cur=nenki(lastRoku.si,_cy,lastRoku.plus);
+        L.push("■年運サイクル（生年月日から確定・細木式12運気・運命星"+lastRoku.label+"）：");
+        L.push("　"+_yr.join(" / "));
+        L.push("　★これは確定計算した唯一の正解。各年の運気名・大殺界の年は、上記を一字一句そのまま使うこと。AIが独自に運気を計算し直す・推測することを固く禁止する。");
+        L.push("　★"+_cy+"年（今年）の運気は確定で「"+_cur.name+"」。"+(_cur.daisatsu?"今年は大殺界の年。":"今年は大殺界ではない（今を大殺界と書くのは重大な誤り）。"));
+        if(_dai.length)L.push("　★大殺界（陰影→停止→減退の連続3年）に該当する年は "+_dai.join("・")+"年 のみ。これ以外の年を大殺界と書いてはならない。");
+        else L.push("　★"+_cy+"〜"+(_cy+6)+"年の範囲に大殺界は無い。");
+        L.push("　12運気の順＝種子→緑生→立花→健弱→達成→乱気→再会→財成→安定→陰影→停止→減退。大殺界＝陰影・停止・減退の連続3年のみ。");}
+    }
     else L.push("■六星占術：未算出（"+(lastRoku?lastRoku.reason:"未入力")+"）");
     var nm=(($("sei").value||"")+($("mei").value||"")).trim();
     L.push("■姓名："+(nm||"未入力"));
